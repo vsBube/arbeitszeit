@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Arbeitszeit Rechner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --card: #161820;
+    --border: #2a2d3a;
+    --accent: #c8f060;
+    --accent2: #60d4f0;
+    --text: #e8eaf0;
+    --muted: #6b6f80;
+    --red: #f06060;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    overflow-x: hidden;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  header h1 span {
+    color: var(--accent);
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 6px;
+    letter-spacing: 0.08em;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .field label .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+
+  .dot-green { background: var(--accent); }
+  .dot-blue { background: var(--accent2); }
+  .dot-orange { background: #f0a060; }
+
+  input[type="time"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 1.4rem;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type="time"]:focus {
+    border-color: var(--accent);
+  }
+
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.3);
+    cursor: pointer;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  button {
+    width: 100%;
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 14px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    text-transform: uppercase;
+  }
+
+  button:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+  }
+
+  .result {
+    margin-top: 20px;
+    display: none;
+  }
+
+  .result.visible {
+    display: block;
+  }
+
+  .result-card {
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 14px;
+    padding: 20px 24px;
+    text-align: center;
+    animation: fadeUp 0.35s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .result-times {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .result-block {
+    flex: 1;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .result-block-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .result-time {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.8rem, 9vw, 2.6rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .result-time.green { color: var(--accent); }
+  .result-time.blue  { color: var(--accent2); }
+
+  .result-sub {
+    margin-top: 14px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .result-sub span {
+    color: var(--text);
+  }
+
+  .error-msg {
+    background: rgba(240,96,96,0.1);
+    border: 1px solid var(--red);
+    border-radius: 10px;
+    color: var(--red);
+    font-size: 0.75rem;
+    padding: 12px 16px;
+    margin-top: 16px;
+    text-align: center;
+    display: none;
+  }
+
+  .error-msg.visible { display: block; }
+
+  .reset-btn {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    margin-top: 12px;
+    font-size: 0.72rem;
+  }
+
+  .reset-btn:hover { color: var(--text); border-color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Arbeits<span>zeit</span></h1>
+  <p>8.2/9-STUNDEN RECHNER</p>
+</header>
+
+<div class="card">
+  <div class="field">
+    <label><span class="dot dot-green"></span>Ankunftszeit</label>
+    <input type="time" id="ankunft" />
+  </div>
+
+  <div class="field">
+    <label><span class="dot dot-blue"></span>Start Mittagspause</label>
+    <input type="time" id="pauseStart" />
+  </div>
+
+  <div class="field">
+    <label><span class="dot dot-orange"></span>Ende Mittagspause</label>
+    <input type="time" id="pauseEnde" />
+  </div>
+
+  <div class="divider"></div>
+
+  <button onclick="berechnen()">Berechnen</button>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="result" id="result">
+    <div class="result-card">
+      <div class="result-label"></div>
+      <div class="result-times">
+        <div class="result-block">
+          <div class="result-block-label">8h 12min</div>
+          <div class="result-time green" id="feierabend8h">--:--</div>
+        </div>
+        <div class="result-block">
+          <div class="result-block-label">9 Stunden</div>
+          <div class="result-time blue" id="feierabend9h">--:--</div>
+        </div>
+      </div>
+      <div class="result-sub" id="resultDetails"></div>
+    </div>
+    <button class="reset-btn" onclick="zuruecksetzen()">Zurücksetzen</button>
+  </div>
+</div>
+
+<script>
+function toMinutes(val) {
+  const [h, m] = val.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function toTimeStr(minutes) {
+  const h = Math.floor(minutes / 60) % 24;
+  const m = minutes % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function berechnen() {
+  const err = document.getElementById('errorMsg');
+  const result = document.getElementById('result');
+  err.classList.remove('visible');
+  result.classList.remove('visible');
+
+  const ankunft = document.getElementById('ankunft').value;
+  const pauseStart = document.getElementById('pauseStart').value;
+  const pauseEnde = document.getElementById('pauseEnde').value;
+
+  if (!ankunft || !pauseStart || !pauseEnde) {
+    err.textContent = 'Bitte alle drei Zeiten eingeben.';
+    err.classList.add('visible');
+    return;
+  }
+
+  const aMin = toMinutes(ankunft);
+  const psMin = toMinutes(pauseStart);
+  const peMin = toMinutes(pauseEnde);
+
+  if (psMin <= aMin) {
+    err.textContent = 'Pausenstart muss nach der Ankunft liegen.';
+    err.classList.add('visible');
+    return;
+  }
+
+  if (peMin <= psMin) {
+    err.textContent = 'Pausenende muss nach dem Pausenstart liegen.';
+    err.classList.add('visible');
+    return;
+  }
+
+  const pauseDauer = peMin - psMin;
+  const feierabend8h12 = aMin + (8 * 60 + 12) + pauseDauer;
+  const feierabend9h   = aMin + 9 * 60 + pauseDauer;
+
+  document.getElementById('feierabend8h').textContent = toTimeStr(feierabend8h12);
+  document.getElementById('feierabend9h').textContent  = toTimeStr(feierabend9h);
+  document.getElementById('resultDetails').innerHTML =
+    `Ankunft: <span>${toTimeStr(aMin)}</span><br>` +
+    `Pause: <span>${toTimeStr(psMin)} – ${toTimeStr(peMin)}</span> (${pauseDauer} Min.)`;
+
+  result.classList.add('visible');
+}
+
+function zuruecksetzen() {
+  ['ankunft','pauseStart','pauseEnde'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('errorMsg').classList.remove('visible');
+}
+
+// Prefill with current time for ankunft as convenience
+const now = new Date();
+const hh = String(now.getHours()).padStart(2,'0');
+const mm = String(now.getMinutes()).padStart(2,'0');
+document.getElementById('ankunft').value = `${hh}:${mm}`;
+</script>
+</body>
+</html>
