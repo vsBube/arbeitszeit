@@ -7,375 +7,153 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #0d0f14;
-    --card: #161820;
-    --border: #2a2d3a;
-    --accent: #c8f060;
-    --accent2: #60d4f0;
-    --accent3: #f0a060;
-    --text: #e8eaf0;
-    --muted: #6b6f80;
-    --red: #f06060;
+    --bg: #0d0f14; --card: #161820; --card2: #1c1e28; --border: #2a2d3a;
+    --accent: #c8f060; --accent2: #60d4f0; --accent3: #f0a060; --accent4: #c060f0;
+    --text: #e8eaf0; --muted: #6b6f80; --red: #f06060;
   }
-
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 16px 40px;
-    overflow-x: hidden;
+    background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace;
+    min-height: 100dvh; display: flex; flex-direction: column;
+    align-items: center; padding: 20px 14px 50px; overflow-x: hidden;
   }
-
-  header {
-    text-align: center;
-    margin-bottom: 28px;
-  }
-
-  header h1 {
-    font-family: 'Fraunces', serif;
-    font-size: clamp(1.8rem, 6vw, 2.6rem);
-    font-weight: 300;
-    letter-spacing: -0.02em;
-    color: var(--text);
-    line-height: 1.1;
-  }
-
+  header { text-align: center; margin-bottom: 18px; }
+  header h1 { font-family: 'Fraunces', serif; font-size: clamp(1.5rem,5vw,2.2rem); font-weight: 300; letter-spacing: -0.02em; color: var(--text); }
   header h1 span { color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.7rem; margin-top: 4px; letter-spacing: 0.08em; }
 
-  header p {
-    color: var(--muted);
-    font-size: 0.75rem;
-    margin-top: 6px;
-    letter-spacing: 0.08em;
-  }
+  .tabs { display: flex; gap: 6px; width: 100%; max-width: 440px; margin-bottom: 16px; }
+  .tab { flex: 1; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .tab.active { background: var(--accent); color: #0d0f14; border-color: var(--accent); font-weight: 500; }
 
-  /* Tab switcher */
-  .tabs {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 20px;
-  }
-
-  .tab {
-    flex: 1;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-  }
-
-  .tab.active {
-    background: var(--accent);
-    color: #0d0f14;
-    border-color: var(--accent);
-    font-weight: 500;
-  }
-
-  .panel { display: none; width: 100%; max-width: 400px; }
+  .panel { display: none; width: 100%; max-width: 440px; }
   .panel.active { display: block; }
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    width: 100%;
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; width: 100%; }
+
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 5px; }
+  .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: middle; position: relative; top: -1px; }
+  .dot-green { background: var(--accent); } .dot-blue { background: var(--accent2); } .dot-orange { background: var(--accent3); }
+
+  input[type="time"], input[type="date"], input[type="text"] {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.95rem;
+    padding: 9px 12px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; appearance: none;
   }
+  input[type="time"] { font-size: 1.25rem; }
+  input:focus { border-color: var(--accent); }
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.3); cursor: pointer; }
 
-  .field { margin-bottom: 20px; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
-  .field label {
-    display: block;
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-
-  .field label .dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-right: 6px;
-    vertical-align: middle;
-    position: relative;
-    top: -1px;
-  }
-
-  .dot-green { background: var(--accent); }
-  .dot-blue { background: var(--accent2); }
-  .dot-orange { background: var(--accent3); }
-
-  input[type="time"] {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 1.4rem;
-    padding: 12px 16px;
-    outline: none;
-    transition: border-color 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  input[type="time"]:focus { border-color: var(--accent); }
-
-  input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: invert(1) opacity(0.3);
-    cursor: pointer;
-  }
-
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 20px 0;
-  }
-
-  button {
-    width: 100%;
-    background: var(--accent);
-    color: #0d0f14;
-    border: none;
-    border-radius: 10px;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    padding: 14px;
-    cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
-    text-transform: uppercase;
-  }
-
+  button { width: 100%; background: var(--accent); color: #0d0f14; border: none; border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; padding: 12px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; text-transform: uppercase; }
   button:active { transform: scale(0.97); opacity: 0.85; }
+  .reset-btn { background: transparent; color: var(--muted); border: 1px solid var(--border); margin-top: 9px; font-size: 0.68rem; }
+  .add-btn { background: transparent; border: 1px dashed var(--accent); color: var(--accent); border-radius: 10px; padding: 9px; font-size: 0.7rem; letter-spacing: 0.08em; margin-bottom: 12px; }
+  .add-btn-sub { background: transparent; border: 1px dashed rgba(96,212,240,0.5); color: var(--accent2); border-radius: 8px; padding: 7px; font-size: 0.65rem; letter-spacing: 0.06em; margin-top: 8px; width: 100%; }
+  .del-btn { width: 30px; height: 30px; min-width: 30px; padding: 0; background: transparent; border: 1px solid var(--border); border-radius: 7px; color: var(--red); font-size: 0.9rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .del-btn:active { background: rgba(240,96,96,0.1); transform: scale(0.95); }
+  .clear-all-btn { background: transparent; color: var(--red); border: 1px solid rgba(240,96,96,0.4); margin-top: 9px; font-size: 0.68rem; }
 
-  .result {
-    margin-top: 20px;
-    display: none;
-  }
-
+  .result { margin-top: 16px; display: none; }
   .result.visible { display: block; }
-
-  .result-card {
-    background: var(--bg);
-    border: 1px solid var(--accent);
-    border-radius: 14px;
-    padding: 20px 24px;
-    text-align: center;
-    animation: fadeUp 0.35s ease;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .result-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-
-  .result-times {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 4px;
-  }
-
-  .result-block {
-    flex: 1;
-    background: var(--card);
-    border-radius: 10px;
-    padding: 14px 10px;
-    text-align: center;
-    border: 1px solid var(--border);
-  }
-
-  .result-block-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  .result-time {
-    font-family: 'Fraunces', serif;
-    font-size: clamp(1.8rem, 9vw, 2.6rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-
-  .result-time.green { color: var(--accent); }
-  .result-time.blue  { color: var(--accent2); }
-  .result-time.orange { color: var(--accent3); }
-
-  .result-sub {
-    margin-top: 14px;
-    font-size: 0.72rem;
-    color: var(--muted);
-    line-height: 1.7;
-  }
-
+  .result-card { background: var(--bg); border: 1px solid var(--accent); border-radius: 14px; padding: 16px 18px; animation: fadeUp 0.35s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .result-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; text-align: center; }
+  .result-times { display: flex; gap: 10px; margin-bottom: 4px; }
+  .result-block { flex: 1; background: var(--card); border-radius: 10px; padding: 11px 8px; text-align: center; border: 1px solid var(--border); }
+  .result-block-label { font-size: 0.56rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .result-time { font-family: 'Fraunces', serif; font-size: clamp(1.5rem,7.5vw,2.2rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  .result-time.green { color: var(--accent); } .result-time.blue { color: var(--accent2); } .result-time.orange { color: var(--accent3); }
+  .result-sub { margin-top: 10px; font-size: 0.68rem; color: var(--muted); line-height: 1.75; text-align: center; }
   .result-sub span { color: var(--text); }
 
-  .error-msg {
-    background: rgba(240,96,96,0.1);
-    border: 1px solid var(--red);
-    border-radius: 10px;
-    color: var(--red);
-    font-size: 0.75rem;
-    padding: 12px 16px;
-    margin-top: 16px;
-    text-align: center;
-    display: none;
-  }
-
+  .error-msg { background: rgba(240,96,96,0.1); border: 1px solid var(--red); border-radius: 9px; color: var(--red); font-size: 0.7rem; padding: 9px 13px; margin-top: 12px; text-align: center; display: none; }
   .error-msg.visible { display: block; }
 
-  .reset-btn {
-    background: transparent;
-    color: var(--muted);
+  /* Panel 2 – Zeitblöcke */
+  .block-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; animation: fadeUp 0.2s ease; }
+  .block-row .von-bis { display: flex; flex: 1; gap: 5px; align-items: center; }
+  .block-row input[type="time"] { font-size: 0.95rem; padding: 8px 9px; }
+  .sep { color: var(--muted); font-size: 0.7rem; flex-shrink: 0; }
+  .block-number { font-size: 0.56rem; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 2px; text-transform: uppercase; }
+
+  /* Panel 3 – Aufträge */
+  .auftrag-block {
+    background: var(--bg);
     border: 1px solid var(--border);
-    margin-top: 12px;
-    font-size: 0.72rem;
-  }
-
-  /* Zeit-Blöcke */
-  .block-list { margin-bottom: 16px; }
-
-  .block-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    border-radius: 13px;
+    padding: 14px;
+    margin-bottom: 14px;
     animation: fadeUp 0.2s ease;
   }
+  .auftrag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 13px; }
+  .auftrag-title { font-size: 0.6rem; color: var(--accent4); letter-spacing: 0.1em; text-transform: uppercase; }
 
-  .block-row .von-bis {
-    display: flex;
-    flex: 1;
-    gap: 6px;
-    align-items: center;
-  }
+  .row2 { display: flex; gap: 8px; margin-bottom: 13px; }
+  .row2 .f { flex: 1; }
+  .row2 .f label { display: block; font-size: 0.58rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
 
-  .block-row input[type="time"] {
-    font-size: 1rem;
-    padding: 10px 10px;
-  }
-
-  .block-row .sep {
-    color: var(--muted);
-    font-size: 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .del-btn {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    padding: 0;
-    background: transparent;
+  /* Zeit-Einträge innerhalb eines Auftrags */
+  .zeit-list { margin-top: 10px; }
+  .zeit-entry {
+    background: var(--card2);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--red);
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s;
+    border-radius: 9px;
+    padding: 10px 11px;
+    margin-bottom: 8px;
+    animation: fadeUp 0.15s ease;
   }
+  .zeit-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .zeit-entry-label { font-size: 0.56rem; color: var(--accent2); letter-spacing: 0.08em; text-transform: uppercase; }
+  .zeit-row { display: flex; gap: 7px; }
+  .zeit-row .zf { flex: 1; }
+  .zeit-row .zf label { display: block; font-size: 0.56rem; letter-spacing: 0.07em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .zeit-row input[type="time"] { font-size: 1.05rem; padding: 8px 9px; }
+  .zeit-row input[type="date"] { font-size: 0.85rem; padding: 8px 9px; }
 
-  .del-btn:active { background: rgba(240,96,96,0.1); transform: scale(0.95); }
+  .saved-badge { display: inline-block; background: rgba(200,240,96,0.12); border: 1px solid rgba(200,240,96,0.35); color: var(--accent); border-radius: 6px; font-size: 0.58rem; padding: 3px 8px; letter-spacing: 0.06em; margin-bottom: 12px; }
 
-  .add-btn {
-    background: transparent;
-    border: 1px dashed var(--accent);
-    color: var(--accent);
-    border-radius: 10px;
-    padding: 10px;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    margin-bottom: 16px;
-  }
-
-  .block-number {
-    font-size: 0.6rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-  }
+  /* Auswertung */
+  .auftrag-result-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; margin-bottom: 10px; text-align: left; }
+  .res-aufnr-label { font-size: 0.58rem; color: var(--accent4); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+  .res-aufnr-val { font-size: 0.9rem; color: var(--text); margin-bottom: 2px; }
+  .res-desc { font-size: 0.65rem; color: var(--muted); margin-bottom: 8px; }
+  .res-total { font-family: 'Fraunces', serif; font-size: 1.55rem; color: var(--accent4); font-weight: 600; }
+  .res-detail { font-size: 0.63rem; color: var(--muted); margin-top: 6px; line-height: 1.65; }
+  .res-detail span { color: var(--text); }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Arbeits<span>zeit</span></h1>
-  <p>8.2 und 9-Stunden / Zeitblöcke Rechner</p>
+  <p>8.2/9-STUNDEN RECHNER</p>
 </header>
 
-<!-- Tabs -->
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('feierabend')">8.2 und 9-Stunden</div>
-  <div class="tab" onclick="switchTab('summe')">Zeitblöcke</div>
+  <div class="tab active" onclick="switchTab('feierabend')">⏰ Feierabend</div>
+  <div class="tab" onclick="switchTab('summe')">➕ Zeitblöcke</div>
+  <div class="tab" onclick="switchTab('auftraege')">📋 Aufträge</div>
 </div>
 
-<!-- Panel 1: Feierabend -->
+<!-- ═══ Panel 1: Feierabend ═══ -->
 <div class="panel active" id="panel-feierabend">
   <div class="card">
-    <div class="field">
-      <label><span class="dot dot-green"></span>Ankunftszeit</label>
-      <input type="time" id="ankunft" />
-    </div>
-    <div class="field">
-      <label><span class="dot dot-blue"></span>Start Mittagspause</label>
-      <input type="time" id="pauseStart" />
-    </div>
-    <div class="field">
-      <label><span class="dot dot-orange"></span>Ende Mittagspause</label>
-      <input type="time" id="pauseEnde" />
-    </div>
+    <div class="field"><label><span class="dot dot-green"></span>Ankunftszeit</label><input type="time" id="ankunft"/></div>
+    <div class="field"><label><span class="dot dot-blue"></span>Start Mittagspause</label><input type="time" id="pauseStart"/></div>
+    <div class="field"><label><span class="dot dot-orange"></span>Ende Mittagspause</label><input type="time" id="pauseEnde"/></div>
     <div class="divider"></div>
     <button onclick="berechnen()">Berechnen</button>
     <div class="error-msg" id="errorMsg"></div>
     <div class="result" id="result">
       <div class="result-card">
-        <div class="result-label">Uhrzeit für 8.2h und 9h Arbeitszeit</div>
+        <div class="result-label">🏁 Feierabend um</div>
         <div class="result-times">
-          <div class="result-block">
-            <div class="result-block-label">8.2 Stunden</div>
-            <div class="result-time green" id="feierabend8h">--:--</div>
-          </div>
-          <div class="result-block">
-            <div class="result-block-label">9 Stunden</div>
-            <div class="result-time blue" id="feierabend9h">--:--</div>
-          </div>
+          <div class="result-block"><div class="result-block-label">8h 12min</div><div class="result-time green" id="feierabend8h">--:--</div></div>
+          <div class="result-block"><div class="result-block-label">9 Stunden</div><div class="result-time blue" id="feierabend9h">--:--</div></div>
         </div>
         <div class="result-sub" id="resultDetails"></div>
       </div>
@@ -384,11 +162,12 @@
   </div>
 </div>
 
-<!-- Panel 2: Zeitblöcke summieren -->
+<!-- ═══ Panel 2: Zeitblöcke ═══ -->
 <div class="panel" id="panel-summe">
   <div class="card">
     <div class="block-number">Zeitblöcke eingeben:</div>
-    <div class="block-list" id="blockList"></div>
+    <div style="height:10px"></div>
+    <div id="blockList"></div>
     <button class="add-btn" onclick="addBlock()">+ Zeitblock hinzufügen</button>
     <div class="divider"></div>
     <button onclick="berechnenSumme()">Berechnen</button>
@@ -396,7 +175,7 @@
     <div class="result" id="result2">
       <div class="result-card">
         <div class="result-label">⏱ Gesamte Arbeitszeit</div>
-        <div class="result-time orange" id="summeResult" style="font-size: clamp(2.2rem, 11vw, 3.2rem); margin: 8px 0;">--:--</div>
+        <div class="result-time orange" id="summeResult" style="font-size:clamp(2rem,10vw,2.8rem);margin:8px 0 8px;">--:--</div>
         <div class="result-sub" id="summeDetails"></div>
       </div>
       <button class="reset-btn" onclick="zuruecksetzenSumme()">Zurücksetzen</button>
@@ -404,181 +183,299 @@
   </div>
 </div>
 
+<!-- ═══ Panel 3: Aufträge ═══ -->
+<div class="panel" id="panel-auftraege">
+  <div class="card">
+    <div id="savedBadge" class="saved-badge" style="display:none">✓ Automatisch gespeichert</div>
+    <div id="auftragList"></div>
+    <button class="add-btn" onclick="addAuftrag()">+ Neuen Auftrag hinzufügen</button>
+    <div class="divider"></div>
+    <button onclick="berechnenAuftraege()">Berechnen &amp; Auswerten</button>
+    <div class="error-msg" id="errorMsg3"></div>
+    <div class="result" id="result3">
+      <div class="result-card" style="text-align:left">
+        <div class="result-label" style="text-align:center">📋 Auswertung</div>
+        <div id="auftragResults"></div>
+      </div>
+      <button class="reset-btn" onclick="exportText()">📤 Als Text kopieren</button>
+      <button class="clear-all-btn" onclick="clearAllAuftraege()">🗑 Alle Aufträge löschen</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ── Tab switcher ──────────────────────────────────────
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', (i === 0 && name === 'feierabend') || (i === 1 && name === 'summe'));
+// ── Helpers ──────────────────────────────────────────────────
+function toMin(v){const[h,m]=v.split(':').map(Number);return h*60+m;}
+function toHHMM(min){const h=Math.floor(min/60)%24,m=min%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
+function minToHM(min){const h=Math.floor(min/60),m=min%60;return`${h}h ${String(m).padStart(2,'0')}min`;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Tabs ─────────────────────────────────────────────────────
+function switchTab(name){
+  ['feierabend','summe','auftraege'].forEach((t,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',t===name);
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
   });
-  document.getElementById('panel-feierabend').classList.toggle('active', name === 'feierabend');
-  document.getElementById('panel-summe').classList.toggle('active', name === 'summe');
 }
 
-// ── Helpers ───────────────────────────────────────────
-function toMinutes(val) {
-  const [h, m] = val.split(':').map(Number);
-  return h * 60 + m;
+// ── Panel 1 ──────────────────────────────────────────────────
+const now=new Date();
+document.getElementById('ankunft').value=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+function berechnen(){
+  const err=document.getElementById('errorMsg'),res=document.getElementById('result');
+  err.classList.remove('visible');res.classList.remove('visible');
+  const a=document.getElementById('ankunft').value,ps=document.getElementById('pauseStart').value,pe=document.getElementById('pauseEnde').value;
+  if(!a||!ps||!pe){err.textContent='Bitte alle drei Zeiten eingeben.';err.classList.add('visible');return;}
+  const aM=toMin(a),psM=toMin(ps),peM=toMin(pe);
+  if(psM<=aM){err.textContent='Pausenstart muss nach der Ankunft liegen.';err.classList.add('visible');return;}
+  if(peM<=psM){err.textContent='Pausenende muss nach dem Pausenstart liegen.';err.classList.add('visible');return;}
+  const p=peM-psM;
+  document.getElementById('feierabend8h').textContent=toHHMM(aM+(8*60+12)+p);
+  document.getElementById('feierabend9h').textContent=toHHMM(aM+9*60+p);
+  document.getElementById('resultDetails').innerHTML=`Ankunft: <span>${toHHMM(aM)}</span><br>Pause: <span>${toHHMM(psM)} – ${toHHMM(peM)}</span> (${p} Min.)`;
+  res.classList.add('visible');
 }
-
-function toTimeStr(minutes) {
-  const h = Math.floor(minutes / 60) % 24;
-  const m = minutes % 60;
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-}
-
-function minToHM(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}h ${String(m).padStart(2,'0')}min`;
-}
-
-// ── Panel 1: Feierabend ───────────────────────────────
-function berechnen() {
-  const err = document.getElementById('errorMsg');
-  const result = document.getElementById('result');
-  err.classList.remove('visible');
-  result.classList.remove('visible');
-
-  const ankunft = document.getElementById('ankunft').value;
-  const pauseStart = document.getElementById('pauseStart').value;
-  const pauseEnde = document.getElementById('pauseEnde').value;
-
-  if (!ankunft || !pauseStart || !pauseEnde) {
-    err.textContent = 'Bitte alle drei Zeiten eingeben.';
-    err.classList.add('visible');
-    return;
-  }
-
-  const aMin = toMinutes(ankunft);
-  const psMin = toMinutes(pauseStart);
-  const peMin = toMinutes(pauseEnde);
-
-  if (psMin <= aMin) {
-    err.textContent = 'Pausenstart muss nach der Ankunft liegen.';
-    err.classList.add('visible');
-    return;
-  }
-  if (peMin <= psMin) {
-    err.textContent = 'Pausenende muss nach dem Pausenstart liegen.';
-    err.classList.add('visible');
-    return;
-  }
-
-  const pauseDauer = peMin - psMin;
-  const feierabend8h12 = aMin + (8 * 60 + 12) + pauseDauer;
-  const feierabend9h   = aMin + 9 * 60 + pauseDauer;
-
-  document.getElementById('feierabend8h').textContent = toTimeStr(feierabend8h12);
-  document.getElementById('feierabend9h').textContent  = toTimeStr(feierabend9h);
-  document.getElementById('resultDetails').innerHTML =
-    `Ankunft: <span>${toTimeStr(aMin)}</span><br>` +
-    `Pause: <span>${toTimeStr(psMin)} – ${toTimeStr(peMin)}</span> (${pauseDauer} Min.)`;
-
-  result.classList.add('visible');
-}
-
-function zuruecksetzen() {
-  ['ankunft','pauseStart','pauseEnde'].forEach(id => document.getElementById(id).value = '');
+function zuruecksetzen(){
+  ['ankunft','pauseStart','pauseEnde'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('result').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
 }
 
-// Prefill ankunft
-const now = new Date();
-document.getElementById('ankunft').value =
-  `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-// ── Panel 2: Zeitblöcke ───────────────────────────────
-let blockCount = 0;
-
-function addBlock() {
+// ── Panel 2 ──────────────────────────────────────────────────
+let blockCount=0;
+function addBlock(){
   blockCount++;
-  const list = document.getElementById('blockList');
-  const row = document.createElement('div');
-  row.className = 'block-row';
-  row.id = `block-${blockCount}`;
-  row.innerHTML = `
-    <div style="flex:1">
-      <div class="block-number">Block ${blockCount}</div>
-      <div class="von-bis">
-        <input type="time" id="von-${blockCount}" placeholder="Von">
-        <span class="sep">→</span>
-        <input type="time" id="bis-${blockCount}" placeholder="Bis">
-      </div>
-    </div>
-    <button class="del-btn" onclick="removeBlock(${blockCount})">✕</button>
-  `;
+  const list=document.getElementById('blockList');
+  const row=document.createElement('div');
+  row.className='block-row';row.id=`block-${blockCount}`;
+  row.innerHTML=`<div style="flex:1"><div class="block-number">Block ${blockCount}</div><div class="von-bis"><input type="time" id="von-${blockCount}"><span class="sep">→</span><input type="time" id="bis-${blockCount}"></div></div><button class="del-btn" onclick="removeBlock(${blockCount})">✕</button>`;
   list.appendChild(row);
 }
-
-function removeBlock(id) {
-  const el = document.getElementById(`block-${id}`);
-  if (el) el.remove();
-}
-
-function berechnenSumme() {
-  const err = document.getElementById('errorMsg2');
-  const result = document.getElementById('result2');
-  err.classList.remove('visible');
-  result.classList.remove('visible');
-
-  const rows = document.querySelectorAll('.block-row');
-  if (rows.length === 0) {
-    err.textContent = 'Bitte mindestens einen Zeitblock hinzufügen.';
-    err.classList.add('visible');
-    return;
-  }
-
-  let totalMin = 0;
-  let details = '';
-  let hasError = false;
-
-  rows.forEach((row, i) => {
-    const id = row.id.split('-')[1];
-    const vonVal = document.getElementById(`von-${id}`).value;
-    const bisVal = document.getElementById(`bis-${id}`).value;
-
-    if (!vonVal || !bisVal) {
-      err.textContent = `Block ${i+1}: Bitte beide Zeiten eingeben.`;
-      err.classList.add('visible');
-      hasError = true;
-      return;
-    }
-
-    const vonMin = toMinutes(vonVal);
-    const bisMin = toMinutes(bisVal);
-
-    if (bisMin <= vonMin) {
-      err.textContent = `Block ${i+1}: Endzeit muss nach der Startzeit liegen.`;
-      err.classList.add('visible');
-      hasError = true;
-      return;
-    }
-
-    const dauer = bisMin - vonMin;
-    totalMin += dauer;
-    details += `Block ${i+1}: <span>${vonVal} – ${bisVal}</span> = ${minToHM(dauer)}<br>`;
+function removeBlock(id){document.getElementById(`block-${id}`)?.remove();}
+function berechnenSumme(){
+  const err=document.getElementById('errorMsg2'),res=document.getElementById('result2');
+  err.classList.remove('visible');res.classList.remove('visible');
+  const rows=document.querySelectorAll('.block-row');
+  if(!rows.length){err.textContent='Bitte mindestens einen Zeitblock hinzufügen.';err.classList.add('visible');return;}
+  let total=0,details='',hasErr=false;
+  rows.forEach((row,i)=>{
+    if(hasErr)return;
+    const id=row.id.split('-')[1];
+    const v=document.getElementById(`von-${id}`).value,b=document.getElementById(`bis-${id}`).value;
+    if(!v||!b){err.textContent=`Block ${i+1}: Bitte beide Zeiten eingeben.`;err.classList.add('visible');hasErr=true;return;}
+    const vM=toMin(v),bM=toMin(b);
+    if(bM<=vM){err.textContent=`Block ${i+1}: Endzeit muss nach Startzeit liegen.`;err.classList.add('visible');hasErr=true;return;}
+    const d=bM-vM;total+=d;
+    details+=`Block ${i+1}: <span>${v} – ${b}</span> = ${minToHM(d)}<br>`;
   });
-
-  if (hasError) return;
-
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  document.getElementById('summeResult').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  document.getElementById('summeDetails').innerHTML = details + `<br>Total: <span>${minToHM(totalMin)}</span>`;
-  result.classList.add('visible');
+  if(hasErr)return;
+  document.getElementById('summeResult').textContent=`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+  document.getElementById('summeDetails').innerHTML=details+`<br>Total: <span>${minToHM(total)}</span>`;
+  res.classList.add('visible');
 }
-
-function zuruecksetzenSumme() {
-  document.getElementById('blockList').innerHTML = '';
-  blockCount = 0;
+function zuruecksetzenSumme(){
+  document.getElementById('blockList').innerHTML='';blockCount=0;
   document.getElementById('result2').classList.remove('visible');
   document.getElementById('errorMsg2').classList.remove('visible');
   addBlock();
 }
-
-// Start with one block
 addBlock();
+
+// ── Panel 3 – Aufträge mit localStorage ──────────────────────
+const STORAGE_KEY='auftraege_v2';
+let auftraege=[];   // [{id, auftragsnr, vorgangsnr, beschreibung, zeiten:[{id,datum,von,bis}]}]
+let aufId=0, zeitId=0;
+
+function save(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify({auftraege,aufId,zeitId}));}catch(e){}
+  if(auftraege.length)document.getElementById('savedBadge').style.display='inline-block';
+}
+function load(){
+  try{
+    const d=localStorage.getItem(STORAGE_KEY);
+    if(d){const p=JSON.parse(d);auftraege=p.auftraege||[];aufId=p.aufId||0;zeitId=p.zeitId||0;}
+  }catch(e){}
+}
+
+// Add/remove Auftrag
+function addAuftrag(){
+  aufId++;
+  auftraege.push({id:aufId,auftragsnr:'',vorgangsnr:'',beschreibung:'',zeiten:[]});
+  save();
+  renderAll();
+  // Add one Zeit-Eintrag automatically
+  addZeit(aufId);
+}
+function removeAuftrag(aid){
+  auftraege=auftraege.filter(a=>a.id!==aid);
+  save();
+  renderAll();
+}
+
+// Add/remove Zeit-Eintrag
+function addZeit(aid){
+  const a=auftraege.find(a=>a.id===aid);
+  if(!a)return;
+  zeitId++;
+  const n=new Date();
+  const datum=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+  const von=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  a.zeiten.push({id:zeitId,datum,von,bis:''});
+  save();
+  renderAll();
+}
+function removeZeit(aid,zid){
+  const a=auftraege.find(a=>a.id===aid);
+  if(!a)return;
+  a.zeiten=a.zeiten.filter(z=>z.id!==zid);
+  save();
+  renderAll();
+}
+
+// Update fields
+function updA(aid,field,val){
+  const a=auftraege.find(a=>a.id===aid);
+  if(a){a[field]=val;save();}
+}
+function updZ(aid,zid,field,val){
+  const a=auftraege.find(a=>a.id===aid);
+  if(a){const z=a.zeiten.find(z=>z.id===zid);if(z){z[field]=val;save();}}
+}
+
+function renderAll(){
+  const list=document.getElementById('auftragList');
+  list.innerHTML='';
+  auftraege.forEach((a,ai)=>{
+    const div=document.createElement('div');
+    div.className='auftrag-block';
+
+    // Zeit-Einträge HTML
+    let zeitHTML='';
+    a.zeiten.forEach((z,zi)=>{
+      zeitHTML+=`
+        <div class="zeit-entry" id="zeit-${z.id}">
+          <div class="zeit-entry-header">
+            <span class="zeit-entry-label">Eintrag ${zi+1}</span>
+            ${a.zeiten.length>1?`<button class="del-btn" onclick="removeZeit(${a.id},${z.id})">✕</button>`:'<div style="width:30px"></div>'}
+          </div>
+          <div class="zeit-row">
+            <div class="zf">
+              <label>Datum</label>
+              <input type="date" value="${esc(z.datum)}" oninput="updZ(${a.id},${z.id},'datum',this.value)">
+            </div>
+            <div class="zf">
+              <label>Von</label>
+              <input type="time" value="${esc(z.von)}" oninput="updZ(${a.id},${z.id},'von',this.value)">
+            </div>
+            <div class="zf">
+              <label>Bis</label>
+              <input type="time" value="${esc(z.bis)}" oninput="updZ(${a.id},${z.id},'bis',this.value)">
+            </div>
+          </div>
+        </div>`;
+    });
+
+    div.innerHTML=`
+      <div class="auftrag-header">
+        <span class="auftrag-title">Auftrag ${ai+1}</span>
+        <button class="del-btn" onclick="removeAuftrag(${a.id})">✕</button>
+      </div>
+      <div class="row2">
+        <div class="f">
+          <label>Auftragsnr. (8-stellig)</label>
+          <input type="text" maxlength="8" placeholder="12345678" value="${esc(a.auftragsnr)}" oninput="updA(${a.id},'auftragsnr',this.value)">
+        </div>
+        <div class="f">
+          <label>Vorgangsnr. (4-stellig)</label>
+          <input type="text" maxlength="4" placeholder="1122" value="${esc(a.vorgangsnr)}" oninput="updA(${a.id},'vorgangsnr',this.value)">
+        </div>
+      </div>
+      <div style="margin-bottom:13px">
+        <label style="display:block;font-size:0.58rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Beschreibung</label>
+        <input type="text" placeholder="Auftragsbeschreibung..." value="${esc(a.beschreibung)}" oninput="updA(${a.id},'beschreibung',this.value)">
+      </div>
+      <div class="zeit-list">${zeitHTML}</div>
+      <button class="add-btn-sub" onclick="addZeit(${a.id})">+ Weiterer Zeitblock</button>`;
+    list.appendChild(div);
+  });
+}
+
+function berechnenAuftraege(){
+  const err=document.getElementById('errorMsg3'),res=document.getElementById('result3');
+  err.classList.remove('visible');res.classList.remove('visible');
+  if(!auftraege.length){err.textContent='Bitte mindestens einen Auftrag hinzufügen.';err.classList.add('visible');return;}
+
+  for(let i=0;i<auftraege.length;i++){
+    const a=auftraege[i];
+    if(!a.auftragsnr||a.auftragsnr.length!==8){err.textContent=`Auftrag ${i+1}: Auftragsnummer muss 8-stellig sein.`;err.classList.add('visible');return;}
+    if(!a.vorgangsnr||a.vorgangsnr.length!==4){err.textContent=`Auftrag ${i+1}: Vorgangsnummer muss 4-stellig sein.`;err.classList.add('visible');return;}
+    for(let j=0;j<a.zeiten.length;j++){
+      const z=a.zeiten[j];
+      if(!z.von||!z.bis){err.textContent=`Auftrag ${i+1}, Eintrag ${j+1}: Bitte Von- und Bis-Zeit eingeben.`;err.classList.add('visible');return;}
+      if(toMin(z.bis)<=toMin(z.von)){err.textContent=`Auftrag ${i+1}, Eintrag ${j+1}: Bis-Zeit muss nach Von-Zeit liegen.`;err.classList.add('visible');return;}
+    }
+  }
+
+  // Group by auftragsnr + vorgangsnr
+  const groups={};
+  auftraege.forEach(a=>{
+    const key=`${a.auftragsnr}__${a.vorgangsnr}`;
+    if(!groups[key])groups[key]={auftragsnr:a.auftragsnr,vorgangsnr:a.vorgangsnr,beschreibung:a.beschreibung,eintraege:[],total:0};
+    a.zeiten.forEach(z=>{
+      const d=toMin(z.bis)-toMin(z.von);
+      groups[key].total+=d;
+      groups[key].eintraege.push({datum:z.datum,von:z.von,bis:z.bis,dauer:d});
+    });
+  });
+
+  const container=document.getElementById('auftragResults');
+  container.innerHTML='';
+  Object.values(groups).forEach(g=>{
+    const div=document.createElement('div');
+    div.className='auftrag-result-item';
+    const details=g.eintraege.map(e=>`${e.datum?'<span>'+e.datum+'</span> ':''}<span>${e.von} – ${e.bis}</span> = ${minToHM(e.dauer)}`).join('<br>');
+    div.innerHTML=`
+      <div class="res-aufnr-label">Auftrag</div>
+      <div class="res-aufnr-val">${esc(g.auftragsnr)} · Vorgang <span style="color:var(--accent4)">${esc(g.vorgangsnr)}</span></div>
+      <div class="res-desc">${esc(g.beschreibung)||'–'}</div>
+      <div class="res-total">${minToHM(g.total)}</div>
+      <div class="res-detail">${details}</div>`;
+    container.appendChild(div);
+  });
+  res.classList.add('visible');
+}
+
+function exportText(){
+  const groups={};
+  auftraege.forEach(a=>{
+    const key=`${a.auftragsnr}__${a.vorgangsnr}`;
+    if(!groups[key])groups[key]={auftragsnr:a.auftragsnr,vorgangsnr:a.vorgangsnr,beschreibung:a.beschreibung,eintraege:[],total:0};
+    a.zeiten.forEach(z=>{
+      const d=toMin(z.bis)-toMin(z.von);groups[key].total+=d;
+      groups[key].eintraege.push({datum:z.datum,von:z.von,bis:z.bis,dauer:d});
+    });
+  });
+  let text='ARBEITSZEITAUSWERTUNG\n'+'='.repeat(30)+'\n\n';
+  Object.values(groups).forEach(g=>{
+    text+=`Auftrag:  ${g.auftragsnr}\nVorgang:  ${g.vorgangsnr}\nBeschr.:  ${g.beschreibung||'–'}\nGesamt:   ${minToHM(g.total)}\n`;
+    g.eintraege.forEach(e=>{text+=`  ${e.datum?e.datum+' ':''}${e.von} – ${e.bis} = ${minToHM(e.dauer)}\n`;});
+    text+='\n';
+  });
+  try{navigator.clipboard.writeText(text).then(()=>alert('✓ Text kopiert!'));}
+  catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('✓ Text kopiert!');}
+}
+
+function clearAllAuftraege(){
+  if(!confirm('Wirklich alle Aufträge löschen?'))return;
+  auftraege=[];aufId=0;zeitId=0;save();renderAll();
+  document.getElementById('result3').classList.remove('visible');
+  document.getElementById('savedBadge').style.display='none';
+}
+
+// Init
+load();
+renderAll();
+if(auftraege.length===0)addAuftrag();
 </script>
 </body>
 </html>
