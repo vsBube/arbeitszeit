@@ -113,12 +113,9 @@ button:active{transform:scale(0.97);opacity:0.85;}
 </style>
 </head>
 <body>
-<header>
-  <div style="display:flex;align-items:center;justify-content:center;width:100%;max-width:440px;position:relative;">
-    <h1 style="flex:1;text-align:center;">Arbeits<span>zeit</span></h1>
-    <button onclick="toggleInfo()" style="position:absolute;right:0;background:transparent;border:2px solid var(--red);border-radius:50%;width:26px;height:26px;padding:0;font-size:0.75rem;font-weight:600;color:var(--red);cursor:pointer;" onmouseover="this.style.background='var(--red)';this.style.color='#0d0f14';" onmouseout="this.style.background='transparent';this.style.color='var(--red)';">?</button>
-  </div>
-  <p>Browserdaten l&ouml;schen entfernt alle Eintr&auml;ge &nbsp;&bull;&nbsp; Archiv exportierbar</p>
+<header style="width:100%;max-width:440px;position:relative;text-align:center;">
+  <h1>Arbeits<span>zeit</span></h1>
+  <button onclick="toggleInfo()" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:transparent;border:2px solid var(--red);border-radius:50%;width:26px;height:26px;padding:0;font-size:0.75rem;font-weight:600;color:var(--red);cursor:pointer;" onmouseover="this.style.background='var(--red)';this.style.color='#0d0f14';" onmouseout="this.style.background='transparent';this.style.color='var(--red)';">?</button>
 </header>
 
 <!-- Info Modal -->
