@@ -6,133 +6,116 @@
 <title>Arbeitszeit Rechner</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0d0f14; --card: #161820; --card2: #1c1e28; --border: #2a2d3a;
-    --accent: #c8f060; --accent2: #60d4f0; --accent3: #f0a060; --accent4: #c060f0;
-    --text: #e8eaf0; --muted: #6b6f80; --red: #f06060;
-  }
-  body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100dvh; display:flex; flex-direction:column; align-items:center; padding:20px 14px 50px; overflow-x:hidden; }
-  header { text-align:center; margin-bottom:18px; }
-  header h1 { font-family:'Fraunces',serif; font-size:clamp(1.5rem,5vw,2.2rem); font-weight:300; letter-spacing:-0.02em; color:var(--text); }
-  header h1 span { color:var(--accent); }
-  header p { color:var(--muted); font-size:0.7rem; margin-top:4px; letter-spacing:0.08em; }
-
-  .tabs { display:flex; gap:6px; width:100%; max-width:440px; margin-bottom:16px; }
-  .tab { flex:1; padding:9px 4px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; text-align:center; }
-  .tab.active { background:var(--accent); color:#0d0f14; border-color:var(--accent); font-weight:500; }
-
-  .panel { display:none; width:100%; max-width:440px; }
-  .panel.active { display:block; }
-  .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; width:100%; }
-
-  .field { margin-bottom:13px; }
-  .field label { display:block; font-size:0.6rem; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
-  .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; vertical-align:middle; position:relative; top:-1px; }
-  .dot-green { background:var(--accent); } .dot-blue { background:var(--accent2); } .dot-orange { background:var(--accent3); }
-
-  input[type="time"], input[type="date"], input[type="text"] {
-    width:100%; background:var(--bg); border:1px solid var(--border); border-radius:9px;
-    color:var(--text); font-family:'DM Mono',monospace; font-size:0.95rem;
-    padding:9px 12px; outline:none; transition:border-color 0.2s; -webkit-appearance:none; appearance:none;
-  }
-  input[type="time"] { font-size:1.25rem; }
-  input:focus { border-color:var(--accent); }
-  input[type="time"]::-webkit-calendar-picker-indicator,
-  input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(1) opacity(0.3); cursor:pointer; }
-  .divider { height:1px; background:var(--border); margin:16px 0; }
-
-  button { width:100%; background:var(--accent); color:#0d0f14; border:none; border-radius:10px; font-family:'DM Mono',monospace; font-size:0.8rem; font-weight:500; letter-spacing:0.08em; padding:12px; cursor:pointer; transition:transform 0.1s,opacity 0.2s; text-transform:uppercase; }
-  button:active { transform:scale(0.97); opacity:0.85; }
-  .reset-btn { background:transparent; color:var(--muted); border:1px solid var(--border); margin-top:9px; font-size:0.68rem; }
-  .add-btn { background:transparent; border:1px dashed var(--accent); color:var(--accent); border-radius:10px; padding:9px; font-size:0.7rem; letter-spacing:0.08em; margin-bottom:12px; }
-  .add-btn-sub { background:transparent; border:1px dashed rgba(96,212,240,0.5); color:var(--accent2); border-radius:8px; padding:7px; font-size:0.65rem; letter-spacing:0.06em; margin-top:8px; width:100%; }
-  .del-btn { width:30px; height:30px; min-width:30px; padding:0; background:transparent; border:1px solid var(--border); border-radius:7px; color:var(--red); font-size:0.9rem; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .del-btn:active { background:rgba(240,96,96,0.1); transform:scale(0.95); }
-  .clear-all-btn { background:transparent; color:var(--red); border:1px solid rgba(240,96,96,0.4); margin-top:9px; font-size:0.68rem; }
-  .archive-btn { background:var(--accent3); color:#0d0f14; }
-
-  .result { margin-top:16px; display:none; }
-  .result.visible { display:block; }
-  .result-card { background:var(--bg); border:1px solid var(--accent); border-radius:14px; padding:16px 18px; animation:fadeUp 0.35s ease; }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
-  .result-label { font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; text-align:center; }
-  .result-times { display:flex; gap:10px; margin-bottom:4px; }
-  .result-block { flex:1; background:var(--card); border-radius:10px; padding:11px 8px; text-align:center; border:1px solid var(--border); }
-  .result-block-label { font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
-  .result-time { font-family:'Fraunces',serif; font-size:clamp(1.5rem,7.5vw,2.2rem); font-weight:600; letter-spacing:-0.02em; line-height:1; }
-  .result-time.green { color:var(--accent); } .result-time.blue { color:var(--accent2); } .result-time.orange { color:var(--accent3); }
-  .result-sub { margin-top:10px; font-size:0.68rem; color:var(--muted); line-height:1.75; text-align:center; }
-  .result-sub span { color:var(--text); }
-  .error-msg { background:rgba(240,96,96,0.1); border:1px solid var(--red); border-radius:9px; color:var(--red); font-size:0.7rem; padding:9px 13px; margin-top:12px; text-align:center; display:none; }
-  .error-msg.visible { display:block; }
-
-  /* Panel 3 – Aufträge */
-  .saved-badge { display:inline-block; background:rgba(200,240,96,0.12); border:1px solid rgba(200,240,96,0.35); color:var(--accent); border-radius:6px; font-size:0.58rem; padding:3px 8px; letter-spacing:0.06em; margin-bottom:12px; }
-  .auftrag-block { background:var(--bg); border:1px solid var(--border); border-radius:13px; padding:14px; margin-bottom:14px; animation:fadeUp 0.2s ease; }
-  .auftrag-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:13px; }
-  .auftrag-title { font-size:0.6rem; color:var(--accent4); letter-spacing:0.1em; text-transform:uppercase; }
-  .row2 { display:flex; gap:8px; margin-bottom:13px; }
-  .row2 .f { flex:1; }
-  .row2 .f label { display:block; font-size:0.58rem; letter-spacing:0.08em; color:var(--muted); text-transform:uppercase; margin-bottom:4px; }
-  .zeit-list { margin-top:10px; }
-  .zeit-entry { background:var(--card2); border:1px solid var(--border); border-radius:9px; padding:10px 11px; margin-bottom:8px; animation:fadeUp 0.15s ease; }
-  .zeit-entry-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .zeit-entry-label { font-size:0.56rem; color:var(--accent2); letter-spacing:0.08em; text-transform:uppercase; }
-  .zeit-row { display:flex; gap:5px; }
-  .zeit-row .zf { flex:1; min-width:0; }
-  .zeit-row .zf label { display:block; font-size:0.56rem; letter-spacing:0.07em; color:var(--muted); text-transform:uppercase; margin-bottom:4px; }
-  .zeit-row input[type="time"] { font-size:0.88rem; padding:8px 2px; width:100%; min-width:0; }
-  .zeit-row input[type="time"]::-webkit-calendar-picker-indicator { display:none; }
-  .datum-btn { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:8px 6px; font-size:0.95rem; color:var(--text); font-family:'DM Mono',monospace; text-align:left; cursor:pointer; min-height:38px; letter-spacing:0; }
-  .datum-btn.empty { color:var(--muted); font-size:0.78rem; }
-  .datum-btn:active { border-color:var(--accent); }
-  .auftrag-result-item { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:13px 15px; margin-bottom:10px; text-align:left; }
-  .res-aufnr-label { font-size:0.58rem; color:var(--accent4); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:3px; }
-  .res-aufnr-val { font-size:0.9rem; color:var(--text); margin-bottom:2px; }
-  .res-desc { font-size:0.65rem; color:var(--muted); margin-bottom:8px; }
-  .res-total { font-family:'Fraunces',serif; font-size:1.55rem; color:var(--accent4); font-weight:600; }
-  .res-detail { font-size:0.63rem; color:var(--muted); margin-top:6px; line-height:1.65; }
-  .res-detail span { color:var(--text); }
-
-  /* Archiv */
-  .archiv-empty { color:var(--muted); font-size:0.75rem; text-align:center; padding:20px 0; line-height:1.8; }
-  .monat-block { margin-bottom:18px; }
-  .monat-header { font-family:'Fraunces',serif; font-size:1.1rem; color:var(--accent); font-weight:300; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
-  .kw-block { background:var(--bg); border:1px solid var(--border); border-radius:11px; margin-bottom:8px; overflow:hidden; }
-  .kw-header { display:flex; justify-content:space-between; align-items:center; padding:11px 14px; cursor:pointer; }
-  .kw-title { font-size:0.7rem; color:var(--accent2); letter-spacing:0.08em; text-transform:uppercase; }
-  .kw-meta { font-size:0.62rem; color:var(--muted); }
-  .kw-arrow { color:var(--muted); font-size:0.7rem; transition:transform 0.2s; }
-  .kw-arrow.open { transform:rotate(180deg); }
-  .kw-body { display:none; padding:0 14px 12px; border-top:1px solid var(--border); }
-  .kw-body.open { display:block; }
-  .kw-auftrag { margin-top:10px; }
-  .kw-aufnr { font-size:0.62rem; color:var(--accent4); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:2px; }
-  .kw-aufnr-val { font-size:0.85rem; color:var(--text); margin-bottom:1px; }
-  .kw-desc { font-size:0.63rem; color:var(--muted); margin-bottom:4px; }
-  .kw-total { font-family:'Fraunces',serif; font-size:1.3rem; color:var(--accent4); font-weight:600; }
-  .kw-detail { font-size:0.62rem; color:var(--muted); line-height:1.6; margin-top:3px; }
-  .kw-detail span { color:var(--text); }
-  .kw-actions { display:flex; gap:8px; margin-top:10px; }
-  .kw-btn { background:transparent; color:var(--muted); border:1px solid var(--border); font-size:0.62rem; padding:6px; flex:1; }
-  .kw-btn.red { color:var(--red); border-color:rgba(240,96,96,0.4); }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0d0f14;--card:#161820;--card2:#1c1e28;--border:#2a2d3a;--accent:#c8f060;--accent2:#60d4f0;--accent3:#f0a060;--accent4:#c060f0;--text:#e8eaf0;--muted:#6b6f80;--red:#f06060;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:20px 14px 50px;overflow-x:hidden;}
+header{text-align:center;margin-bottom:18px;}
+header h1{font-family:'Fraunces',serif;font-size:clamp(1.5rem,5vw,2.2rem);font-weight:300;letter-spacing:-0.02em;color:var(--text);}
+header h1 span{color:var(--accent);}
+header p{color:var(--muted);font-size:0.7rem;margin-top:4px;letter-spacing:0.08em;}
+.tabs{display:flex;gap:6px;width:100%;max-width:440px;margin-bottom:16px;}
+.tab{flex:1;padding:9px 4px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;text-align:center;}
+.tab.active{background:var(--accent);color:#0d0f14;border-color:var(--accent);font-weight:500;}
+.panel{display:none;width:100%;max-width:440px;}
+.panel.active{display:block;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;width:100%;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle;position:relative;top:-1px;}
+.dot-green{background:var(--accent);}.dot-blue{background:var(--accent2);}.dot-orange{background:var(--accent3);}
+input[type="time"],input[type="date"],input[type="text"]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.95rem;padding:9px 12px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;appearance:none;}
+input[type="time"]{font-size:1.25rem;}
+input:focus{border-color:var(--accent);}
+input[type="time"]::-webkit-calendar-picker-indicator{display:none;}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(0.3);cursor:pointer;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+button{width:100%;background:var(--accent);color:#0d0f14;border:none;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:500;letter-spacing:0.08em;padding:12px;cursor:pointer;transition:transform 0.1s,opacity 0.2s;text-transform:uppercase;}
+button:active{transform:scale(0.97);opacity:0.85;}
+.reset-btn{background:transparent;color:var(--muted);border:1px solid var(--border);margin-top:9px;font-size:0.68rem;}
+.add-btn{background:transparent;border:1px dashed var(--accent);color:var(--accent);border-radius:10px;padding:9px;font-size:0.7rem;letter-spacing:0.08em;margin-bottom:12px;}
+.add-btn-sub{background:transparent;border:1px dashed rgba(96,212,240,0.5);color:var(--accent2);border-radius:8px;padding:7px;font-size:0.65rem;letter-spacing:0.06em;margin-top:8px;width:100%;}
+.del-btn{width:30px;height:30px;min-width:30px;padding:0;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--red);font-size:0.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.del-btn:active{background:rgba(240,96,96,0.1);transform:scale(0.95);}
+.clear-all-btn{background:transparent;color:var(--red);border:1px solid rgba(240,96,96,0.4);margin-top:9px;font-size:0.68rem;}
+.archive-btn{background:var(--accent3);color:#0d0f14;}
+.result{margin-top:16px;display:none;}
+.result.visible{display:block;}
+.result-card{background:var(--bg);border:1px solid var(--accent);border-radius:14px;padding:16px 18px;animation:fadeUp 0.35s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.result-label{font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;text-align:center;}
+.result-times{display:flex;gap:10px;margin-bottom:4px;}
+.result-block{flex:1;background:var(--card);border-radius:10px;padding:11px 8px;text-align:center;border:1px solid var(--border);}
+.result-block-label{font-size:0.56rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.result-time{font-family:'Fraunces',serif;font-size:clamp(1.5rem,7.5vw,2.2rem);font-weight:600;letter-spacing:-0.02em;line-height:1;}
+.result-time.green{color:var(--accent);}.result-time.blue{color:var(--accent2);}
+.result-sub{margin-top:10px;font-size:0.68rem;color:var(--muted);line-height:1.75;text-align:center;}
+.result-sub span{color:var(--text);}
+.error-msg{background:rgba(240,96,96,0.1);border:1px solid var(--red);border-radius:9px;color:var(--red);font-size:0.7rem;padding:9px 13px;margin-top:12px;text-align:center;display:none;}
+.error-msg.visible{display:block;}
+.saved-badge{display:inline-block;background:rgba(200,240,96,0.12);border:1px solid rgba(200,240,96,0.35);color:var(--accent);border-radius:6px;font-size:0.58rem;padding:3px 8px;letter-spacing:0.06em;margin-bottom:12px;}
+.auftrag-block{background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:14px;animation:fadeUp 0.2s ease;}
+.auftrag-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+.auftrag-title{font-size:0.6rem;color:var(--accent4);letter-spacing:0.1em;text-transform:uppercase;}
+.row2{display:flex;gap:8px;margin-bottom:13px;}
+.row2 .f{flex:1;}
+.row2 .f label{display:block;font-size:0.58rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.zeit-list{margin-top:10px;}
+.zeit-entry{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 11px;margin-bottom:8px;animation:fadeUp 0.15s ease;}
+.zeit-entry-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.zeit-entry-label{font-size:0.56rem;color:var(--accent2);letter-spacing:0.08em;text-transform:uppercase;}
+.zeit-row{display:flex;gap:5px;}
+.zeit-row .zf{flex:1;min-width:0;}
+.zeit-row .zf label{display:block;font-size:0.56rem;letter-spacing:0.07em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.zeit-row input[type="time"]{font-size:0.88rem;padding:8px 2px;width:100%;min-width:0;}
+.datum-btn{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 6px;font-size:0.95rem;color:var(--text);font-family:'DM Mono',monospace;text-align:left;cursor:pointer;min-height:38px;letter-spacing:0;}
+.datum-btn.empty{color:var(--muted);font-size:0.78rem;}
+.datum-btn:active{border-color:var(--accent);}
+.auftrag-result-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-bottom:10px;text-align:left;}
+.res-aufnr-label{font-size:0.58rem;color:var(--accent4);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;}
+.res-aufnr-val{font-size:0.9rem;color:var(--text);margin-bottom:2px;}
+.res-desc{font-size:0.65rem;color:var(--muted);margin-bottom:8px;}
+.res-total{font-family:'Fraunces',serif;font-size:1.55rem;color:var(--accent4);font-weight:600;}
+.res-detail{font-size:0.63rem;color:var(--muted);margin-top:6px;line-height:1.65;}
+.res-detail span{color:var(--text);}
+.week-total-box{margin-top:14px;padding:14px;background:var(--bg);border:1px solid var(--accent);border-radius:10px;text-align:center;}
+.week-total-label{font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.week-total-val{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--accent);font-weight:600;}
+.archiv-empty{color:var(--muted);font-size:0.75rem;text-align:center;padding:20px 0;line-height:1.8;}
+.monat-block{margin-bottom:18px;}
+.monat-header{font-family:'Fraunces',serif;font-size:1.1rem;color:var(--accent);font-weight:300;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.kw-block{background:var(--bg);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden;}
+.kw-header{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;cursor:pointer;}
+.kw-title{font-size:0.7rem;color:var(--accent2);letter-spacing:0.08em;text-transform:uppercase;}
+.kw-meta{font-size:0.62rem;color:var(--muted);margin-top:2px;}
+.kw-arrow{color:var(--muted);font-size:0.7rem;transition:transform 0.2s;flex-shrink:0;}
+.kw-arrow.open{transform:rotate(180deg);}
+.kw-body{display:none;padding:0 14px 12px;border-top:1px solid var(--border);}
+.kw-body.open{display:block;}
+.kw-auftrag{margin-top:10px;}
+.kw-aufnr{font-size:0.62rem;color:var(--accent4);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2px;}
+.kw-aufnr-val{font-size:0.85rem;color:var(--text);margin-bottom:1px;}
+.kw-desc{font-size:0.63rem;color:var(--muted);margin-bottom:4px;}
+.kw-total{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--accent4);font-weight:600;}
+.kw-detail{font-size:0.62rem;color:var(--muted);line-height:1.6;margin-top:3px;}
+.kw-detail span{color:var(--text);}
+.kw-total-box{margin-top:10px;padding:10px;background:var(--bg);border:1px solid var(--accent);border-radius:8px;text-align:center;}
+.kw-total-box-label{font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.kw-total-box-val{font-family:'Fraunces',serif;font-size:1.4rem;color:var(--accent);font-weight:600;}
+.kw-actions{display:flex;gap:8px;margin-top:10px;}
+.kw-btn{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:0.62rem;padding:6px;flex:1;}
+.kw-btn.red{color:var(--red);border-color:rgba(240,96,96,0.4);}
 </style>
 </head>
 <body>
-
 <header>
   <h1>Arbeits<span>zeit</span></h1>
   <p>Löschen der Cookies und Websitedaten, löscht auch alle Einträge und das Archiv</p>
 </header>
-
 <div class="tabs">
   <div class="tab active" onclick="switchTab('feierabend')">&#9200; Feierabend</div>
   <div class="tab" onclick="switchTab('auftraege')">&#128203; Auftr&#228;ge</div>
   <div class="tab" onclick="switchTab('archiv')">&#128193; Archiv</div>
 </div>
-
-<!-- Panel 1: Feierabend -->
 <div class="panel active" id="panel-feierabend">
   <div class="card">
     <div class="field"><label><span class="dot dot-green"></span>Ankunftszeit</label><input type="time" id="ankunft"/></div>
@@ -154,8 +137,6 @@
     </div>
   </div>
 </div>
-
-<!-- Panel 2: Aufträge -->
 <div class="panel" id="panel-auftraege">
   <div class="card">
     <div id="savedBadge" class="saved-badge" style="display:none">&#10003; Automatisch in Websitedaten gespeichert</div>
@@ -176,73 +157,36 @@
     </div>
   </div>
 </div>
-
-<!-- Panel 3: Archiv -->
 <div class="panel" id="panel-archiv">
-  <div class="card">
-    <div id="archivContent"></div>
-  </div>
+  <div class="card"><div id="archivContent"></div></div>
 </div>
-
 <script>
-// ── Helpers ──────────────────────────────────────────────────
 function toMin(v){var p=v.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
-function toHHMM(min){var h=Math.floor(min/60)%24,m=min%60;return pad(h)+':'+pad(m);}
-function minToHM(min){var h=Math.floor(min/60),m=min%60;return h+'h '+pad(m)+'min';}
+function toHHMM(m){var h=Math.floor(m/60)%24,n=m%60;return pad(h)+':'+pad(n);}
+function minToHM(m){var h=Math.floor(m/60),n=m%60;return h+'h '+pad(n)+'min';}
 function pad(n){return String(n).padStart(2,'0');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-var MONATE=['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
-function datumKurz(iso){
-  if(!iso)return'';
-  var p=iso.split('-');
-  return pad(parseInt(p[2]))+'. '+MONATE[parseInt(p[1])-1];
-}
+var MO=['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+var MON=['Januar','Februar','M\u00e4rz','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+function dk(iso){if(!iso)return'';var p=iso.split('-');return pad(parseInt(p[2]))+'. '+MO[parseInt(p[1])-1];}
 
-// ── Tabs ─────────────────────────────────────────────────────
 function switchTab(name){
-  var tabs=['feierabend','auftraege','archiv'];
-  var tabEls=document.querySelectorAll('.tab');
-  tabs.forEach(function(t,i){
-    tabEls[i].classList.toggle('active',t===name);
-    document.getElementById('panel-'+t).classList.toggle('active',t===name);
-  });
+  var ts=['feierabend','auftraege','archiv'],te=document.querySelectorAll('.tab');
+  ts.forEach(function(t,i){te[i].classList.toggle('active',t===name);document.getElementById('panel-'+t).classList.toggle('active',t===name);});
   if(name==='archiv')renderArchiv();
 }
 
-// ── Panel 1: Feierabend ──────────────────────────────────────
-var FEIER_KEY='feierabend_v1';
-function saveFeierabend(){
-  try{localStorage.setItem(FEIER_KEY,JSON.stringify({
-    ankunft:document.getElementById('ankunft').value,
-    pauseStart:document.getElementById('pauseStart').value,
-    pauseEnde:document.getElementById('pauseEnde').value
-  }));}catch(e){}
-}
-function loadFeierabend(){
-  try{
-    var d=localStorage.getItem(FEIER_KEY);
-    if(d){var p=JSON.parse(d);
-      if(p.ankunft)document.getElementById('ankunft').value=p.ankunft;
-      if(p.pauseStart)document.getElementById('pauseStart').value=p.pauseStart;
-      if(p.pauseEnde)document.getElementById('pauseEnde').value=p.pauseEnde;
-      return true;
-    }
-  }catch(e){}return false;
-}
+var FK='feierabend_v1';
+function saveF(){try{localStorage.setItem(FK,JSON.stringify({a:document.getElementById('ankunft').value,ps:document.getElementById('pauseStart').value,pe:document.getElementById('pauseEnde').value}));}catch(e){}}
+function loadF(){try{var d=localStorage.getItem(FK);if(d){var p=JSON.parse(d);if(p.a)document.getElementById('ankunft').value=p.a;if(p.ps)document.getElementById('pauseStart').value=p.ps;if(p.pe)document.getElementById('pauseEnde').value=p.pe;return true;}}catch(e){}return false;}
 var now=new Date();
-if(!loadFeierabend()){
-  document.getElementById('ankunft').value=pad(now.getHours())+':'+pad(now.getMinutes());
-}
-['ankunft','pauseStart','pauseEnde'].forEach(function(id){
-  document.getElementById(id).addEventListener('change',saveFeierabend);
-});
+if(!loadF())document.getElementById('ankunft').value=pad(now.getHours())+':'+pad(now.getMinutes());
+['ankunft','pauseStart','pauseEnde'].forEach(function(id){document.getElementById(id).addEventListener('change',saveF);});
 
 function berechnen(){
   var err=document.getElementById('errorMsg'),res=document.getElementById('result');
   err.classList.remove('visible');res.classList.remove('visible');
-  var a=document.getElementById('ankunft').value;
-  var ps=document.getElementById('pauseStart').value;
-  var pe=document.getElementById('pauseEnde').value;
+  var a=document.getElementById('ankunft').value,ps=document.getElementById('pauseStart').value,pe=document.getElementById('pauseEnde').value;
   if(!a||!ps||!pe){err.textContent='Bitte alle drei Zeiten eingeben.';err.classList.add('visible');return;}
   var aM=toMin(a),psM=toMin(ps),peM=toMin(pe);
   if(psM<=aM){err.textContent='Pausenstart muss nach der Ankunft liegen.';err.classList.add('visible');return;}
@@ -257,205 +201,99 @@ function zuruecksetzen(){
   ['ankunft','pauseStart','pauseEnde'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('result').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
-  try{localStorage.removeItem(FEIER_KEY);}catch(e){}
+  try{localStorage.removeItem(FK);}catch(e){}
 }
 
-// ── Panel 2: Aufträge ────────────────────────────────────────
-var STORAGE_KEY='auftraege_v2';
-var auftraege=[];
-var aufId=0,zeitId=0;
+var SK='auftraege_v2',auftraege=[],aufId=0,zeitId=0;
+function save(){try{localStorage.setItem(SK,JSON.stringify({auftraege:auftraege,aufId:aufId,zeitId:zeitId}));}catch(e){}if(auftraege.length)document.getElementById('savedBadge').style.display='inline-block';}
+function load(){try{var d=localStorage.getItem(SK);if(d){var p=JSON.parse(d);auftraege=p.auftraege||[];aufId=p.aufId||0;zeitId=p.zeitId||0;}}catch(e){}}
 
-function save(){
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify({auftraege:auftraege,aufId:aufId,zeitId:zeitId}));}catch(e){}
-  if(auftraege.length)document.getElementById('savedBadge').style.display='inline-block';
-}
-function load(){
-  try{
-    var d=localStorage.getItem(STORAGE_KEY);
-    if(d){var p=JSON.parse(d);auftraege=p.auftraege||[];aufId=p.aufId||0;zeitId=p.zeitId||0;}
-  }catch(e){}
-}
-
-function addAuftrag(){
-  aufId++;
-  auftraege.push({id:aufId,auftragsnr:'',vorgangsnr:'',beschreibung:'',zeiten:[]});
-  save();
-  renderAll();
-  addZeit(aufId);
-}
-function removeAuftrag(aid){
-  if(!confirm('Auftrag wirklich l\u00f6schen? Alle Zeiteintr\u00e4ge gehen verloren.'))return;
-  auftraege=auftraege.filter(function(a){return a.id!==aid;});
-  save();renderAll();
-}
+function addAuftrag(){aufId++;auftraege.push({id:aufId,auftragsnr:'',vorgangsnr:'',beschreibung:'',zeiten:[]});save();renderAll();addZeit(aufId);}
+function removeAuftrag(aid){if(!confirm('Auftrag wirklich l\u00f6schen?'))return;auftraege=auftraege.filter(function(a){return a.id!==aid;});save();renderAll();}
 function addZeit(aid){
-  var a=auftraege.find(function(a){return a.id===aid;});
-  if(!a)return;
-  zeitId++;
-  var n=new Date();
-  var datum=n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
-  var von=pad(n.getHours())+':'+pad(n.getMinutes());
-  a.zeiten.push({id:zeitId,datum:datum,von:von,bis:''});
+  var a=auftraege.find(function(a){return a.id===aid;});if(!a)return;
+  zeitId++;var n=new Date();
+  a.zeiten.push({id:zeitId,datum:n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate()),von:pad(n.getHours())+':'+pad(n.getMinutes()),bis:''});
   save();renderAll();
 }
-function removeZeit(aid,zid){
-  if(!confirm('Eintrag wirklich l\u00f6schen?'))return;
+function removeZeit(aid,zid){if(!confirm('Eintrag wirklich l\u00f6schen?'))return;var a=auftraege.find(function(a){return a.id===aid;});if(!a)return;a.zeiten=a.zeiten.filter(function(z){return z.id!==zid;});save();renderAll();}
+function updA(aid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){a[f]=v;save();if(f==='auftragsnr'||f==='vorgangsnr')autoFillBeschreibung(aid);}}
+function autoFillBeschreibung(aid){
   var a=auftraege.find(function(a){return a.id===aid;});
-  if(!a)return;
-  a.zeiten=a.zeiten.filter(function(z){return z.id!==zid;});
-  save();renderAll();
+  if(!a||!a.auftragsnr||!a.vorgangsnr||a.beschreibung)return;
+  // Search archive for matching auftragsnr + vorgangsnr
+  for(var i=0;i<archiv.length;i++){
+    var e=archiv[i];
+    for(var j=0;j<e.gruppen.length;j++){
+      var g=e.gruppen[j];
+      if(g.auftragsnr===a.auftragsnr&&g.vorgangsnr===a.vorgangsnr&&g.beschreibung){
+        a.beschreibung=g.beschreibung;save();
+        // Update the input field visually
+        var inp=document.querySelector('input[data-aid="'+aid+'"][placeholder="Auftragsbeschreibung..."]');
+        if(inp)inp.value=g.beschreibung;
+        return;
+      }
+    }
+  }
 }
-function updA(aid,field,val){
-  var a=auftraege.find(function(a){return a.id===aid;});
-  if(a){a[field]=val;save();}
-}
-function updZ(aid,zid,field,val){
-  var a=auftraege.find(function(a){return a.id===aid;});
-  if(a){var z=a.zeiten.find(function(z){return z.id===zid;});if(z){z[field]=val;save();}}
-}
-function updZDatum(aid,zid,val){
-  updZ(aid,zid,'datum',val);
-  var btn=document.getElementById('dbtn-'+zid);
-  if(btn){btn.textContent=val?datumKurz(val):'Datum';btn.className=val?'datum-btn':'datum-btn empty';}
-}
-function openDatum(zid){
-  var el=document.getElementById('di-'+zid);
-  if(!el)return;
-  try{if(el.showPicker)el.showPicker();else el.click();}catch(e){el.click();}
-}
+function updZ(aid,zid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){var z=a.zeiten.find(function(z){return z.id===zid;});if(z){z[f]=v;save();}}}
+function updZD(aid,zid,v){updZ(aid,zid,'datum',v);var b=document.getElementById('dbtn-'+zid);if(b){b.textContent=v?dk(v):'Datum';b.className=v?'datum-btn':'datum-btn empty';}}
+function openDatum(zid){var el=document.getElementById('di-'+zid);if(!el)return;try{if(el.showPicker)el.showPicker();else el.click();}catch(e){el.click();}}
 
 function renderAll(){
-  var list=document.getElementById('auftragList');
-  list.innerHTML='';
+  var list=document.getElementById('auftragList');list.innerHTML='';
   auftraege.forEach(function(a,ai){
-    var div=document.createElement('div');
-    div.className='auftrag-block';
-
-    // Build Zeit-Entries
-    var zeitDiv=document.createElement('div');
-    zeitDiv.className='zeit-list';
+    var div=document.createElement('div');div.className='auftrag-block';
+    // header
+    var hdr=document.createElement('div');hdr.className='auftrag-header';
+    var ttl=document.createElement('span');ttl.className='auftrag-title';ttl.textContent='Auftrag '+(ai+1);hdr.appendChild(ttl);
+    var xb=document.createElement('button');xb.className='del-btn';xb.textContent='\u2715';xb.setAttribute('data-aid',a.id);xb.onclick=function(){removeAuftrag(parseInt(this.getAttribute('data-aid')));};hdr.appendChild(xb);div.appendChild(hdr);
+    // nr row
+    var r2=document.createElement('div');r2.className='row2';
+    var f1=document.createElement('div');f1.className='f';var l1=document.createElement('label');l1.textContent='Auftragsnr.';f1.appendChild(l1);
+    var i1=document.createElement('input');i1.type='text';i1.maxLength=8;i1.placeholder='________';i1.value=a.auftragsnr||'';i1.setAttribute('data-aid',a.id);i1.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'auftragsnr',this.value);};f1.appendChild(i1);r2.appendChild(f1);
+    var f2=document.createElement('div');f2.className='f';var l2=document.createElement('label');l2.textContent='Vorgangsnr.';f2.appendChild(l2);
+    var i2=document.createElement('input');i2.type='text';i2.maxLength=4;i2.placeholder='____';i2.value=a.vorgangsnr||'';i2.setAttribute('data-aid',a.id);i2.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'vorgangsnr',this.value);};f2.appendChild(i2);r2.appendChild(f2);div.appendChild(r2);
+    // beschreibung
+    var dd=document.createElement('div');dd.style.marginBottom='13px';
+    var dl=document.createElement('label');dl.style.cssText='display:block;font-size:0.58rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;';dl.textContent='Beschreibung';dd.appendChild(dl);
+    var di=document.createElement('input');di.type='text';di.placeholder='Auftragsbeschreibung...';di.value=a.beschreibung||'';di.setAttribute('data-aid',a.id);di.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'beschreibung',this.value);};dd.appendChild(di);div.appendChild(dd);
+    // zeiten
+    var zl=document.createElement('div');zl.className='zeit-list';
     a.zeiten.forEach(function(z,zi){
-      var entry=document.createElement('div');
-      entry.className='zeit-entry';
-      entry.id='zeit-'+z.id;
-
-      var hdr=document.createElement('div');
-      hdr.className='zeit-entry-header';
-      var lbl=document.createElement('span');
-      lbl.className='zeit-entry-label';
-      lbl.textContent='Eintrag '+(zi+1);
-      hdr.appendChild(lbl);
-      if(a.zeiten.length>1){
-        var xbtn=document.createElement('button');
-        xbtn.className='del-btn';
-        xbtn.textContent='\u2715';
-        xbtn.setAttribute('data-aid',a.id);
-        xbtn.setAttribute('data-zid',z.id);
-        xbtn.onclick=function(){removeZeit(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')));};
-        hdr.appendChild(xbtn);
-      }else{
-        var ph=document.createElement('div');ph.style.width='30px';hdr.appendChild(ph);
-      }
-      entry.appendChild(hdr);
-
-      var row=document.createElement('div');
-      row.className='zeit-row';
-
-      // Datum field
-      var zfD=document.createElement('div');zfD.className='zf';
-      var lblD=document.createElement('label');lblD.textContent='Datum';zfD.appendChild(lblD);
-      var hiddenDate=document.createElement('input');
-      hiddenDate.type='date';
-      hiddenDate.id='di-'+z.id;
-      hiddenDate.value=z.datum||'';
-      hiddenDate.style.cssText='position:absolute;visibility:hidden;width:0;height:0;';
-      hiddenDate.setAttribute('data-aid',a.id);
-      hiddenDate.setAttribute('data-zid',z.id);
-      hiddenDate.onchange=function(){updZDatum(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),this.value);};
-      zfD.appendChild(hiddenDate);
-      var datBtn=document.createElement('button');
-      datBtn.type='button';
-      datBtn.id='dbtn-'+z.id;
-      datBtn.className=z.datum?'datum-btn':'datum-btn empty';
-      datBtn.textContent=z.datum?datumKurz(z.datum):'Datum';
-      datBtn.setAttribute('data-zid',z.id);
-      datBtn.onclick=function(){openDatum(parseInt(this.getAttribute('data-zid')));};
-      zfD.appendChild(datBtn);
-      row.appendChild(zfD);
-
-      // Von field
-      var zfV=document.createElement('div');zfV.className='zf';
-      var lblV=document.createElement('label');lblV.textContent='Von';zfV.appendChild(lblV);
-      var inpV=document.createElement('input');inpV.type='time';inpV.value=z.von||'';
-      inpV.setAttribute('data-aid',a.id);inpV.setAttribute('data-zid',z.id);
-      inpV.oninput=function(){updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'von',this.value);};
-      zfV.appendChild(inpV);row.appendChild(zfV);
-
-      // Bis field
-      var zfB=document.createElement('div');zfB.className='zf';
-      var lblB=document.createElement('label');lblB.textContent='Bis';zfB.appendChild(lblB);
-      var inpB=document.createElement('input');inpB.type='time';inpB.value=z.bis||'';
-      inpB.setAttribute('data-aid',a.id);inpB.setAttribute('data-zid',z.id);
-      inpB.oninput=function(){updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'bis',this.value);};
-      zfB.appendChild(inpB);row.appendChild(zfB);
-
-      entry.appendChild(row);
-      zeitDiv.appendChild(entry);
+      var en=document.createElement('div');en.className='zeit-entry';en.id='zeit-'+z.id;
+      var eh=document.createElement('div');eh.className='zeit-entry-header';
+      var elb=document.createElement('span');elb.className='zeit-entry-label';elb.textContent='Eintrag '+(zi+1);eh.appendChild(elb);
+      if(a.zeiten.length>1){var xz=document.createElement('button');xz.className='del-btn';xz.textContent='\u2715';xz.setAttribute('data-aid',a.id);xz.setAttribute('data-zid',z.id);xz.onclick=function(){removeZeit(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')));};eh.appendChild(xz);}
+      else{var ph=document.createElement('div');ph.style.width='30px';eh.appendChild(ph);}
+      en.appendChild(eh);
+      var row=document.createElement('div');row.className='zeit-row';
+      // datum
+      var zfd=document.createElement('div');zfd.className='zf';var zld=document.createElement('label');zld.textContent='Datum';zfd.appendChild(zld);
+      var hd=document.createElement('input');hd.type='date';hd.id='di-'+z.id;hd.value=z.datum||'';hd.style.cssText='position:absolute;visibility:hidden;width:0;height:0;';hd.setAttribute('data-aid',a.id);hd.setAttribute('data-zid',z.id);hd.onchange=function(){updZD(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),this.value);};zfd.appendChild(hd);
+      var db=document.createElement('button');db.type='button';db.id='dbtn-'+z.id;db.className=z.datum?'datum-btn':'datum-btn empty';db.textContent=z.datum?dk(z.datum):'Datum';db.setAttribute('data-zid',z.id);db.onclick=function(){openDatum(parseInt(this.getAttribute('data-zid')));};zfd.appendChild(db);row.appendChild(zfd);
+      // von
+      var zfv=document.createElement('div');zfv.className='zf';var zlv=document.createElement('label');zlv.textContent='Von';zfv.appendChild(zlv);
+      var iv=document.createElement('input');iv.type='time';iv.value=z.von||'';iv.setAttribute('data-aid',a.id);iv.setAttribute('data-zid',z.id);iv.oninput=function(){updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'von',this.value);};zfv.appendChild(iv);row.appendChild(zfv);
+      // bis
+      var zfb=document.createElement('div');zfb.className='zf';var zlb2=document.createElement('label');zlb2.textContent='Bis';zfb.appendChild(zlb2);
+      var ib=document.createElement('input');ib.type='time';ib.value=z.bis||'';ib.setAttribute('data-aid',a.id);ib.setAttribute('data-zid',z.id);ib.oninput=function(){updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'bis',this.value);};zfb.appendChild(ib);row.appendChild(zfb);
+      en.appendChild(row);zl.appendChild(en);
     });
-
-    // Build Auftrag header
-    var hdr2=document.createElement('div');hdr2.className='auftrag-header';
-    var title=document.createElement('span');title.className='auftrag-title';title.textContent='Auftrag '+(ai+1);hdr2.appendChild(title);
-    var xbtn2=document.createElement('button');xbtn2.className='del-btn';xbtn2.textContent='\u2715';
-    xbtn2.setAttribute('data-aid',a.id);
-    xbtn2.onclick=function(){removeAuftrag(parseInt(this.getAttribute('data-aid')));};
-    hdr2.appendChild(xbtn2);
-    div.appendChild(hdr2);
-
-    // Auftragsnr + Vorgangsnr
-    var row2=document.createElement('div');row2.className='row2';
-    var f1=document.createElement('div');f1.className='f';
-    var l1=document.createElement('label');l1.textContent='Auftragsnr.';f1.appendChild(l1);
-    var i1=document.createElement('input');i1.type='text';i1.maxLength=8;i1.placeholder='________';i1.value=a.auftragsnr||'';
-    i1.setAttribute('data-aid',a.id);i1.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'auftragsnr',this.value);};
-    f1.appendChild(i1);row2.appendChild(f1);
-    var f2=document.createElement('div');f2.className='f';
-    var l2=document.createElement('label');l2.textContent='Vorgangsnr.';f2.appendChild(l2);
-    var i2=document.createElement('input');i2.type='text';i2.maxLength=4;i2.placeholder='____';i2.value=a.vorgangsnr||'';
-    i2.setAttribute('data-aid',a.id);i2.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'vorgangsnr',this.value);};
-    f2.appendChild(i2);row2.appendChild(f2);
-    div.appendChild(row2);
-
-    // Beschreibung
-    var descDiv=document.createElement('div');descDiv.style.marginBottom='13px';
-    var descLbl=document.createElement('label');descLbl.style.cssText='display:block;font-size:0.58rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;';descLbl.textContent='Beschreibung';descDiv.appendChild(descLbl);
-    var descInp=document.createElement('input');descInp.type='text';descInp.placeholder='Auftragsbeschreibung...';descInp.value=a.beschreibung||'';
-    descInp.setAttribute('data-aid',a.id);descInp.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'beschreibung',this.value);};
-    descDiv.appendChild(descInp);div.appendChild(descDiv);
-
-    div.appendChild(zeitDiv);
-
-    var addZeitBtn=document.createElement('button');addZeitBtn.className='add-btn-sub';addZeitBtn.textContent='+ Weiterer Zeitblock';
-    addZeitBtn.setAttribute('data-aid',a.id);
-    addZeitBtn.onclick=function(){addZeit(parseInt(this.getAttribute('data-aid')));};
-    div.appendChild(addZeitBtn);
-
+    div.appendChild(zl);
+    var azb=document.createElement('button');azb.className='add-btn-sub';azb.textContent='+ Weiterer Zeitblock';azb.setAttribute('data-aid',a.id);azb.onclick=function(){addZeit(parseInt(this.getAttribute('data-aid')));};div.appendChild(azb);
     list.appendChild(div);
   });
 }
 
-function buildGroups(){
-  var groups={};
-  auftraege.forEach(function(a){
-    var key=a.auftragsnr+'__'+a.vorgangsnr;
-    if(!groups[key])groups[key]={auftragsnr:a.auftragsnr,vorgangsnr:a.vorgangsnr,beschreibung:a.beschreibung,eintraege:[],total:0};
-    a.zeiten.forEach(function(z){
-      var d=toMin(z.bis)-toMin(z.von);
-      groups[key].total+=d;
-      groups[key].eintraege.push({datum:z.datum,von:z.von,bis:z.bis,dauer:d});
-    });
+function buildGroups(src){
+  var g={};
+  (src||auftraege).forEach(function(a){
+    var k=a.auftragsnr+'__'+a.vorgangsnr;
+    if(!g[k])g[k]={auftragsnr:a.auftragsnr,vorgangsnr:a.vorgangsnr,beschreibung:a.beschreibung,eintraege:[],total:0};
+    a.zeiten.forEach(function(z){var d=toMin(z.bis)-toMin(z.von);g[k].total+=d;g[k].eintraege.push({datum:z.datum,von:z.von,bis:z.bis,dauer:d});});
   });
-  return groups;
+  return g;
 }
 
 function berechnenAuftraege(){
@@ -472,24 +310,40 @@ function berechnenAuftraege(){
       if(toMin(z.bis)<=toMin(z.von)){err.textContent='Auftrag '+(i+1)+', Eintrag '+(j+1)+': Bis-Zeit muss nach Von-Zeit liegen.';err.classList.add('visible');return;}
     }
   }
-  var groups=buildGroups();
-  var container=document.getElementById('auftragResults');
+  var groups=buildGroups(),container=document.getElementById('auftragResults');
   container.innerHTML='';
+  var wt=0;
   Object.values(groups).forEach(function(g){
+    wt+=g.total;
     var div=document.createElement('div');div.className='auftrag-result-item';
-    var details=g.eintraege.map(function(e){return (e.datum?'<span>'+datumKurz(e.datum)+'</span> ':'')+'<span>'+e.von+' \u2013 '+e.bis+'</span> = '+minToHM(e.dauer);}).join('<br>');
-    div.innerHTML='<div class="res-aufnr-label">Auftrag</div><div class="res-aufnr-val">'+esc(g.auftragsnr)+' \u00b7 Vorgang <span style="color:var(--accent4)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="res-total">'+minToHM(g.total)+'</div><div class="res-detail">'+details+'</div>';
+    var det=g.eintraege.map(function(e){return (e.datum?'<span>'+dk(e.datum)+'</span> ':'')+'<span>'+e.von+' \u2013 '+e.bis+'</span> = '+minToHM(e.dauer);}).join('<br>');
+    div.innerHTML='<div class="res-aufnr-label">Auftrag</div><div class="res-aufnr-val">'+esc(g.auftragsnr)+' \u00b7 Vorgang <span style="color:var(--accent4)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="res-total">'+minToHM(g.total)+'</div><div class="res-detail">'+det+'</div>';
     container.appendChild(div);
   });
+  // Determine KW from all dates in current auftraege
+  var allDates2=[];
+  auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)allDates2.push(z.datum);});});
+  var kwSet={};
+  allDates2.forEach(function(d){kwSet[getKW(d)]=true;});
+  var kwKeys=Object.keys(kwSet);
+  var wb=document.createElement('div');wb.className='week-total-box';
+  if(kwKeys.length===1){
+    wb.innerHTML='<div class="week-total-label">Total KW '+kwKeys[0]+'</div><div class="week-total-val">'+minToHM(wt)+'</div>';
+  } else if(kwKeys.length>1){
+    var kwList=kwKeys.join(', ');
+    wb.innerHTML='<div class="week-total-label">Total alle Eintr\u00e4ge</div><div class="week-total-val">'+minToHM(wt)+'</div><div style="margin-top:8px;padding:8px 10px;background:rgba(240,160,96,0.12);border:1px solid var(--accent3);border-radius:7px;font-size:0.65rem;color:var(--accent3);line-height:1.5;">\u26a0\ufe0f Eintr\u00e4ge aus verschiedenen Kalenderwochen:<br>KW '+kwList+'<br>Bitte pro Woche separat archivieren.</div>';
+  } else {
+    wb.innerHTML='<div class="week-total-label">Total</div><div class="week-total-val">'+minToHM(wt)+'</div>';
+  }
+  container.appendChild(wb);
   res.classList.add('visible');
 }
 
 function exportText(){
-  var groups=buildGroups();
-  var text='ARBEITSZEITAUSWERTUNG\n'+'='.repeat(30)+'\n\n';
+  var groups=buildGroups(),text='ARBEITSZEITAUSWERTUNG\n'+'='.repeat(30)+'\n\n';
   Object.values(groups).forEach(function(g){
     text+='Auftrag:  '+g.auftragsnr+'\nVorgang:  '+g.vorgangsnr+'\nBeschr.:  '+(g.beschreibung||'\u2013')+'\nGesamt:   '+minToHM(g.total)+'\n';
-    g.eintraege.forEach(function(e){text+='  '+(e.datum?datumKurz(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
+    g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
     text+='\n';
   });
   try{navigator.clipboard.writeText(text).then(function(){alert('\u2713 Text kopiert!');});}
@@ -503,113 +357,107 @@ function clearAllAuftraege(){
   document.getElementById('savedBadge').style.display='none';
 }
 
-// ── Archiv ───────────────────────────────────────────────────
-var ARCHIV_KEY='archiv_v1';
-var archiv=[];
-var MONATSNAMEN=['Januar','Februar','M\u00e4rz','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+var AK='archiv_v1',archiv=[];
+function loadArchiv(){try{var d=localStorage.getItem(AK);if(d)archiv=JSON.parse(d);}catch(e){}}
+function saveArchiv(){try{localStorage.setItem(AK,JSON.stringify(archiv));}catch(e){}}
 
-function loadArchiv(){try{var d=localStorage.getItem(ARCHIV_KEY);if(d)archiv=JSON.parse(d);}catch(e){}}
-function saveArchiv(){try{localStorage.setItem(ARCHIV_KEY,JSON.stringify(archiv));}catch(e){}}
-
-function getKW(iso){
-  var d=new Date(iso);d.setHours(0,0,0,0);
-  d.setDate(d.getDate()+3-(d.getDay()||7)-3);
-  var w=new Date(d.getFullYear(),0,4);
-  return 1+Math.round(((d-w)/86400000-3+(w.getDay()||7))/7);
-}
+function getKW(iso){var d=new Date(iso);d.setHours(0,0,0,0);d.setDate(d.getDate()+3-(d.getDay()||7)-3);var w=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w)/86400000-3+(w.getDay()||7))/7);}
 
 function wocheArchivieren(){
   if(!auftraege.length){alert('Keine Auftr\u00e4ge zum Archivieren.');return;}
   if(!confirm('Aktuelle Woche archivieren?\nDie Eintr\u00e4ge bleiben danach noch aktiv.'))return;
-  var groups=buildGroups();
-  var allDates=[];
-  auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)allDates.push(z.datum);});});
-  allDates.sort();
-  var vonDatum=allDates[0]||'';
-  var bisDatum=allDates[allDates.length-1]||'';
-  var refDate=vonDatum||new Date().toISOString().slice(0,10);
-  var kw=getKW(refDate);
-  var jahr=new Date(refDate).getFullYear();
-  var monat=new Date(refDate).getMonth();
-  archiv.push({id:Date.now(),kw:kw,jahr:jahr,monat:monat,datum_von:vonDatum,datum_bis:bisDatum,gruppen:Object.values(groups)});
-  saveArchiv();
-  alert('\u2713 KW '+kw+' archiviert!');
+  var groups=buildGroups(),dates=[];
+  auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)dates.push(z.datum);});});
+  dates.sort();
+  var vd=dates[0]||'',bd=dates[dates.length-1]||'',ref=vd||new Date().toISOString().slice(0,10);
+  var kw=getKW(ref),jahr=new Date(ref).getFullYear(),monat=new Date(ref).getMonth();
+  archiv.push({id:Date.now(),kw:kw,jahr:jahr,monat:monat,datum_von:vd,datum_bis:bd,gruppen:Object.values(groups)});
+  saveArchiv();alert('\u2713 KW '+kw+' archiviert!');
 }
 
 function deleteArchivEntry(id){
   if(!confirm('Archivierten Eintrag wirklich l\u00f6schen?'))return;
-  archiv=archiv.filter(function(e){return e.id!==id;});
-  saveArchiv();renderArchiv();
+  archiv=archiv.filter(function(e){return e.id!==id;});saveArchiv();renderArchiv();
 }
 
 function exportArchivText(id){
-  var entry=archiv.find(function(e){return e.id===id;});
-  if(!entry)return;
+  var entry=archiv.find(function(e){return e.id===id;});if(!entry)return;
   var text='ARCHIV KW '+entry.kw+' / '+entry.jahr+'\n'+'='.repeat(30)+'\n\n';
   entry.gruppen.forEach(function(g){
     text+='Auftrag:  '+g.auftragsnr+'\nVorgang:  '+g.vorgangsnr+'\nBeschr.:  '+(g.beschreibung||'\u2013')+'\nGesamt:   '+minToHM(g.total)+'\n';
-    g.eintraege.forEach(function(e){text+='  '+(e.datum?datumKurz(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
+    g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
     text+='\n';
   });
   try{navigator.clipboard.writeText(text).then(function(){alert('\u2713 Text kopiert!');});}
   catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('\u2713 Text kopiert!');}
 }
 
-function toggleKW(id){
-  document.getElementById('kwbody-'+id).classList.toggle('open');
-  document.getElementById('kwarrow-'+id).classList.toggle('open');
-}
+function toggleKW(id){var b=document.getElementById('kwbody-'+id),a=document.getElementById('kwarrow-'+id);if(b)b.classList.toggle('open');if(a)a.classList.toggle('open');}
+function toggleUe(key){var b=document.getElementById('ueb-'+key),a=document.getElementById('uea-'+key);if(b)b.classList.toggle('open');if(a)a.classList.toggle('open');}
 
 function renderArchiv(){
   var container=document.getElementById('archivContent');
-  if(!archiv.length){
-    container.innerHTML='<div class="archiv-empty">Noch keine archivierten Wochen.<br><br>Eintr\u00e4ge im Tab \u201eAuftr\u00e4ge\u201c erfassen,<br>dann \u201eWoche abschliessen &amp; archivieren\u201c tippen.</div>';
-    return;
-  }
-  var byMonat={};
-  var sorted=[].concat(archiv).sort(function(a,b){return b.id-a.id;});
-  sorted.forEach(function(e){
-    var key=e.jahr+'-'+String(e.monat).padStart(2,'0');
-    if(!byMonat[key])byMonat[key]={label:MONATSNAMEN[e.monat]+' '+e.jahr,eintraege:[]};
-    byMonat[key].eintraege.push(e);
-  });
+  if(!archiv.length){container.innerHTML='<div class="archiv-empty">Noch keine archivierten Wochen.<br><br>Eintr\u00e4ge im Tab \u201eAuftr\u00e4ge\u201c erfassen,<br>dann \u201eWoche abschliessen &amp; archivieren\u201c tippen.</div>';return;}
   container.innerHTML='';
-  Object.values(byMonat).forEach(function(m){
-    var mDiv=document.createElement('div');mDiv.className='monat-block';
-    var mHdr=document.createElement('div');mHdr.className='monat-header';mHdr.textContent=m.label;mDiv.appendChild(mHdr);
-    m.eintraege.forEach(function(e){
-      var kwLabel=e.datum_von&&e.datum_bis?datumKurz(e.datum_von)+' \u2013 '+datumKurz(e.datum_bis):'KW '+e.kw;
-      var kwBlock=document.createElement('div');kwBlock.className='kw-block';
-      var kwHdr=document.createElement('div');kwHdr.className='kw-header';
-      kwHdr.setAttribute('data-kwid',e.id);
-      kwHdr.onclick=function(){toggleKW(parseInt(this.getAttribute('data-kwid')));};
-      kwHdr.innerHTML='<div><div class="kw-title">KW '+e.kw+'</div><div class="kw-meta">'+kwLabel+'</div></div><span class="kw-arrow" id="kwarrow-'+e.id+'">\u25bc</span>';
-      kwBlock.appendChild(kwHdr);
-      var kwBody=document.createElement('div');kwBody.className='kw-body';kwBody.id='kwbody-'+e.id;
-      e.gruppen.forEach(function(g){
-        var gDiv=document.createElement('div');gDiv.className='kw-auftrag';
-        var details=g.eintraege.map(function(en){return (en.datum?'<span>'+datumKurz(en.datum)+'</span> ':'')+'<span>'+en.von+' \u2013 '+en.bis+'</span> = '+minToHM(en.dauer);}).join('<br>');
-        gDiv.innerHTML='<div class="kw-aufnr">Auftrag</div><div class="kw-aufnr-val">'+esc(g.auftragsnr)+' \u00b7 Vorgang <span style="color:var(--accent4)">'+esc(g.vorgangsnr)+'</span></div><div class="kw-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(g.total)+'</div><div class="kw-detail">'+details+'</div>';
-        kwBody.appendChild(gDiv);
-      });
-      var actions=document.createElement('div');actions.className='kw-actions';
-      var expBtn=document.createElement('button');expBtn.className='kw-btn';expBtn.textContent='\ud83d\udce4 Kopieren';
-      expBtn.setAttribute('data-eid',e.id);expBtn.onclick=function(){exportArchivText(parseInt(this.getAttribute('data-eid')));};
-      var delBtn=document.createElement('button');delBtn.className='kw-btn red';delBtn.textContent='\ud83d\uddd1 L\u00f6schen';
-      delBtn.setAttribute('data-eid',e.id);delBtn.onclick=function(){deleteArchivEntry(parseInt(this.getAttribute('data-eid')));};
-      actions.appendChild(expBtn);actions.appendChild(delBtn);
-      kwBody.appendChild(actions);
-      kwBlock.appendChild(kwBody);
-      mDiv.appendChild(kwBlock);
+  // Gesamtübersicht
+  var byAuf={};
+  archiv.forEach(function(e){e.gruppen.forEach(function(g){
+    if(!byAuf[g.auftragsnr])byAuf[g.auftragsnr]={auftragsnr:g.auftragsnr,total:0,vorgaenge:{}};
+    if(!byAuf[g.auftragsnr].vorgaenge[g.vorgangsnr])byAuf[g.auftragsnr].vorgaenge[g.vorgangsnr]={vorgangsnr:g.vorgangsnr,beschreibung:g.beschreibung,total:0};
+    byAuf[g.auftragsnr].total+=g.total;byAuf[g.auftragsnr].vorgaenge[g.vorgangsnr].total+=g.total;
+  });});
+  var ues=document.createElement('div');ues.className='monat-block';
+  var ueh=document.createElement('div');ueh.className='monat-header';ueh.textContent='\u2139\ufe0f Gesamt\u00fcbersicht';ues.appendChild(ueh);
+  Object.values(byAuf).forEach(function(auf){
+    var k=auf.auftragsnr;
+    var blk=document.createElement('div');blk.className='kw-block';
+    var hdr=document.createElement('div');hdr.className='kw-header';hdr.setAttribute('data-k',k);hdr.onclick=function(){toggleUe(this.getAttribute('data-k'));};
+    var vnames=Object.values(auf.vorgaenge).map(function(v){return esc(v.beschreibung||v.vorgangsnr);}).join(' / ');
+    hdr.innerHTML='<div><div class="kw-title">'+esc(auf.auftragsnr)+'</div><div class="kw-meta">'+minToHM(auf.total)+' gesamt</div><div class="kw-meta" style="color:var(--muted);margin-top:1px;font-size:0.6rem;">'+vnames+'</div></div><span class="kw-arrow" id="uea-'+k+'">\u25bc</span>';
+    blk.appendChild(hdr);
+    var body=document.createElement('div');body.className='kw-body';body.id='ueb-'+k;
+    Object.values(auf.vorgaenge).forEach(function(v){
+      var vd=document.createElement('div');vd.className='kw-auftrag';
+      vd.innerHTML='<div class="kw-aufnr">Vorgang</div><div class="kw-aufnr-val" style="color:var(--accent4)">'+esc(v.vorgangsnr)+'</div><div class="kw-desc">'+esc(v.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(v.total)+'</div>';
+      body.appendChild(vd);
     });
-    container.appendChild(mDiv);
+    blk.appendChild(body);ues.appendChild(blk);
+  });
+  container.appendChild(ues);
+  var dv=document.createElement('div');dv.className='divider';container.appendChild(dv);
+  // Kalenderwochen
+  var bm={},sorted=[].concat(archiv).sort(function(a,b){return b.id-a.id;});
+  sorted.forEach(function(e){var k=e.jahr+'-'+String(e.monat).padStart(2,'0');if(!bm[k])bm[k]={label:MON[e.monat]+' '+e.jahr,eintraege:[]};bm[k].eintraege.push(e);});
+  Object.values(bm).forEach(function(m){
+    var md=document.createElement('div');md.className='monat-block';
+    var mh=document.createElement('div');mh.className='monat-header';mh.textContent=m.label;md.appendChild(mh);
+    m.eintraege.forEach(function(e){
+      var kl=e.datum_von&&e.datum_bis?dk(e.datum_von)+' \u2013 '+dk(e.datum_bis):'KW '+e.kw;
+      var kt=e.gruppen.reduce(function(s,g){return s+g.total;},0);
+      var kb=document.createElement('div');kb.className='kw-block';
+      var kh=document.createElement('div');kh.className='kw-header';kh.setAttribute('data-kwid',e.id);kh.onclick=function(){toggleKW(parseInt(this.getAttribute('data-kwid')));};
+      kh.innerHTML='<div><div class="kw-title">KW '+e.kw+' <span style="color:var(--accent);font-size:0.75rem;">'+minToHM(kt)+'</span></div><div class="kw-meta">'+kl+'</div></div><span class="kw-arrow" id="kwarrow-'+e.id+'">\u25bc</span>';
+      kb.appendChild(kh);
+      var kbody=document.createElement('div');kbody.className='kw-body';kbody.id='kwbody-'+e.id;
+      e.gruppen.forEach(function(g){
+        var gd=document.createElement('div');gd.className='kw-auftrag';
+        var det=g.eintraege.map(function(en){return (en.datum?'<span>'+dk(en.datum)+'</span> ':'')+'<span>'+en.von+' \u2013 '+en.bis+'</span> = '+minToHM(en.dauer);}).join('<br>');
+        gd.innerHTML='<div class="kw-aufnr">Auftrag</div><div class="kw-aufnr-val">'+esc(g.auftragsnr)+' \u00b7 Vorgang <span style="color:var(--accent4)">'+esc(g.vorgangsnr)+'</span></div><div class="kw-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(g.total)+'</div><div class="kw-detail">'+det+'</div>';
+        kbody.appendChild(gd);
+      });
+      var ktb=document.createElement('div');ktb.className='kw-total-box';
+      ktb.innerHTML='<div class="kw-total-box-label">Total KW '+e.kw+'</div><div class="kw-total-box-val">'+minToHM(kt)+'</div>';
+      kbody.appendChild(ktb);
+      var ac=document.createElement('div');ac.className='kw-actions';
+      var eb=document.createElement('button');eb.className='kw-btn';eb.textContent='\ud83d\udce4 Kopieren';eb.setAttribute('data-eid',e.id);eb.onclick=function(){exportArchivText(parseInt(this.getAttribute('data-eid')));};
+      var db2=document.createElement('button');db2.className='kw-btn red';db2.textContent='\ud83d\uddd1 L\u00f6schen';db2.setAttribute('data-eid',e.id);db2.onclick=function(){deleteArchivEntry(parseInt(this.getAttribute('data-eid')));};
+      ac.appendChild(eb);ac.appendChild(db2);kbody.appendChild(ac);kb.appendChild(kbody);md.appendChild(kb);
+    });
+    container.appendChild(md);
   });
 }
 
-// ── Init ─────────────────────────────────────────────────────
-load();
-loadArchiv();
-renderAll();
+load();loadArchiv();renderAll();
 if(auftraege.length===0)addAuftrag();
 </script>
 </body>
