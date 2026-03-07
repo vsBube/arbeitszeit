@@ -70,6 +70,12 @@ button:active{transform:scale(0.97);opacity:0.85;}
 .datum-btn{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 6px;font-size:0.95rem;color:var(--text);font-family:'DM Mono',monospace;text-align:left;cursor:pointer;min-height:38px;letter-spacing:0;}
 .datum-btn.empty{color:var(--muted);font-size:0.78rem;}
 .datum-btn:active{border-color:var(--accent);}
+.suggest-dropdown{position:absolute;z-index:100;background:var(--card);border:1px solid var(--accent);border-radius:9px;width:100%;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5);margin-top:2px;}
+.suggest-item{padding:10px 12px;font-size:0.85rem;cursor:pointer;border-bottom:1px solid var(--border);}
+.suggest-item:last-child{border-bottom:none;}
+.suggest-item:active,.suggest-item:hover{background:var(--card2);}
+.suggest-item span{display:block;font-size:0.6rem;color:var(--muted);margin-top:2px;}
+.input-wrap{position:relative;}
 .auftrag-result-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-bottom:10px;text-align:left;}
 .res-aufnr-label{font-size:0.58rem;color:var(--accent4);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;}
 .res-aufnr-val{font-size:0.9rem;color:var(--text);margin-bottom:2px;}
@@ -109,7 +115,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
 <body>
 <header>
   <h1>Arbeits<span>zeit</span></h1>
-  <p>Löschen der Browserdaten löscht alle Einträge, Archiv kann Exportiert/Importiert werden</p>
+  <p>Browserdaten l&ouml;schen entfernt alle Eintr&auml;ge &nbsp;&bull;&nbsp; Archiv exportierbar</p>
 </header>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('feierabend')">&#9200; Feierabend</div>
@@ -247,6 +253,117 @@ function updZ(aid,zid,f,v){var a=auftraege.find(function(a){return a.id===aid;})
 function updZD(aid,zid,v){updZ(aid,zid,'datum',v);var b=document.getElementById('dbtn-'+zid);if(b){b.textContent=v?dk(v):'Datum';b.className=v?'datum-btn':'datum-btn empty';}}
 function openDatum(zid){var el=document.getElementById('di-'+zid);if(!el)return;try{if(el.showPicker)el.showPicker();else el.click();}catch(e){el.click();}}
 
+function showAuftragSuggestAll(inp,aid){
+  var nrs=getArchivAuftragsnummern();
+  var keys=Object.keys(nrs);if(!keys.length)return;
+  buildAuftragDD(inp,aid,keys,nrs);
+}
+function showVorgangSuggestAll(inp,aid){
+  var a=auftraege.find(function(a){return a.id===aid;});if(!a||!a.auftragsnr)return;
+  var nrs=getArchivAuftragsnummern();
+  var vorgaenge=nrs[a.auftragsnr];if(!vorgaenge||!vorgaenge.length)return;
+  buildVorgangDD(inp,aid,vorgaenge);
+}
+function getArchivAuftragsnummern(){
+  var nrs={};
+  archiv.forEach(function(e){e.gruppen.forEach(function(g){
+    if(!nrs[g.auftragsnr])nrs[g.auftragsnr]=[];
+    var vk=g.vorgangsnr;
+    if(!nrs[g.auftragsnr].find(function(v){return v.nr===vk;}))
+      nrs[g.auftragsnr].push({nr:g.vorgangsnr,beschreibung:g.beschreibung});
+  });});
+  return nrs;
+}
+
+var activeSuggest=null;
+var activeInputId=null;
+var suppressFocus=false;
+function closeSuggest(){
+  if(activeSuggest){activeSuggest.remove();activeSuggest=null;activeInputId=null;}
+}
+function openSuggest(dd,inputId){
+  if(activeInputId===inputId){closeSuggest();return;}
+  closeSuggest();
+  activeSuggest=dd;
+  activeInputId=inputId;
+}
+
+function buildAuftragDD(inp,aid,filtered,nrs){
+  var inputId='auf-'+aid;
+  var dd=document.createElement('div');dd.className='suggest-dropdown';
+  filtered.forEach(function(nr){
+    var item=document.createElement('div');item.className='suggest-item';
+    item.textContent=nr;
+    var sub=document.createElement('span');
+    sub.textContent=nrs[nr].map(function(v){return v.nr+(v.beschreibung?' ('+v.beschreibung+')':'');}).join(', ');
+    item.appendChild(sub);
+    (function(nr2){
+      item.addEventListener('click',function(e){
+        e.stopPropagation();
+        inp.value=nr2;updA(aid,'auftragsnr',nr2);autoFillBeschreibung(aid);
+        closeSuggest();
+      });
+    })(nr);
+    dd.appendChild(item);
+  });
+  var wrap=inp.parentNode;wrap.style.position='relative';
+  wrap.appendChild(dd);openSuggest(dd,inputId);
+}
+function showAuftragSuggest(inp,aid){
+  var nrs=getArchivAuftragsnummern();
+  var keys=Object.keys(nrs);if(!keys.length)return;
+  var val=inp.value.toLowerCase();
+  var filtered=keys.filter(function(k){return k.toLowerCase().includes(val);});
+  if(!filtered.length){closeSuggest();return;}
+  buildAuftragDD(inp,aid,filtered,nrs);
+}
+
+function buildVorgangDD(inp,aid,filtered){
+  var inputId='vorg-'+aid;
+  var dd=document.createElement('div');dd.className='suggest-dropdown';
+  filtered.forEach(function(v){
+    var item=document.createElement('div');item.className='suggest-item';
+    item.textContent=v.nr;
+    if(v.beschreibung){var sub=document.createElement('span');sub.textContent=v.beschreibung;item.appendChild(sub);}
+    (function(v2){
+      item.addEventListener('click',function(e){
+        e.stopPropagation();
+        inp.value=v2.nr;updA(aid,'vorgangsnr',v2.nr);autoFillBeschreibung(aid);closeSuggest();
+      });
+    })(v);
+    dd.appendChild(item);
+  });
+  var wrap=inp.parentNode;wrap.style.position='relative';
+  wrap.appendChild(dd);openSuggest(dd,inputId);
+}
+function showVorgangSuggest(inp,aid){
+  var a=auftraege.find(function(a){return a.id===aid;});if(!a||!a.auftragsnr)return;
+  var nrs=getArchivAuftragsnummern();
+  var vorgaenge=nrs[a.auftragsnr];if(!vorgaenge||!vorgaenge.length)return;
+  var val=inp.value.toLowerCase();
+  var filtered=vorgaenge.filter(function(v){return v.nr.toLowerCase().includes(val);});
+  if(!filtered.length){closeSuggest();return;}
+  buildVorgangDD(inp,aid,filtered);
+}
+
+function showVorgangSuggest2(aid,auftragsnr){
+  // After selecting Auftragsnr, focus Vorgangsnr field
+  var a=auftraege.find(function(a){return a.id===aid;});if(!a)return;
+  var nrs=getArchivAuftragsnummern();
+  var vorgaenge=nrs[auftragsnr];if(!vorgaenge||!vorgaenge.length)return;
+  // Find the Vorgangsnr input for this Auftrag
+  setTimeout(function(){
+    var inp=document.querySelector('input[data-aufid="vorg-'+aid+'"]');
+    if(inp){inp.focus();showVorgangSuggest(inp,aid);}
+  },50);
+}
+
+document.addEventListener('click',function(e){
+  if(activeSuggest&&!activeSuggest.contains(e.target)){
+    closeSuggest();
+  }
+});
+
 function renderAll(){
   var list=document.getElementById('auftragList');list.innerHTML='';
   auftraege.forEach(function(a,ai){
@@ -257,10 +374,14 @@ function renderAll(){
     var xb=document.createElement('button');xb.className='del-btn';xb.textContent='\u2715';xb.setAttribute('data-aid',a.id);xb.onclick=function(){removeAuftrag(parseInt(this.getAttribute('data-aid')));};hdr.appendChild(xb);div.appendChild(hdr);
     // nr row
     var r2=document.createElement('div');r2.className='row2';
-    var f1=document.createElement('div');f1.className='f';var l1=document.createElement('label');l1.textContent='Auftragsnr.';f1.appendChild(l1);
-    var i1=document.createElement('input');i1.type='text';i1.maxLength=8;i1.placeholder='________';i1.value=a.auftragsnr||'';i1.setAttribute('data-aid',a.id);i1.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'auftragsnr',this.value);};f1.appendChild(i1);r2.appendChild(f1);
-    var f2=document.createElement('div');f2.className='f';var l2=document.createElement('label');l2.textContent='Vorgangsnr.';f2.appendChild(l2);
-    var i2=document.createElement('input');i2.type='text';i2.maxLength=4;i2.placeholder='____';i2.value=a.vorgangsnr||'';i2.setAttribute('data-aid',a.id);i2.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'vorgangsnr',this.value);};f2.appendChild(i2);r2.appendChild(f2);div.appendChild(r2);
+    var f1=document.createElement('div');f1.className='f';f1.style.position='relative';var l1=document.createElement('label');l1.textContent='Auftragsnr.';f1.appendChild(l1);
+    var i1=document.createElement('input');i1.type='text';i1.maxLength=8;i1.placeholder='________';i1.value=a.auftragsnr||'';i1.setAttribute('data-aid',a.id);
+    i1.oninput=function(){var id=parseInt(this.getAttribute('data-aid'));updA(id,'auftragsnr',this.value);showAuftragSuggest(this,id);};
+    f1.appendChild(i1);r2.appendChild(f1);
+    var f2=document.createElement('div');f2.className='f';f2.style.position='relative';var l2=document.createElement('label');l2.textContent='Vorgangsnr.';f2.appendChild(l2);
+    var i2=document.createElement('input');i2.type='text';i2.maxLength=4;i2.placeholder='____';i2.value=a.vorgangsnr||'';i2.setAttribute('data-aid',a.id);i2.setAttribute('data-aufid','vorg-'+a.id);
+    i2.oninput=function(){var id=parseInt(this.getAttribute('data-aid'));updA(id,'vorgangsnr',this.value);showVorgangSuggest(this,id);};
+    f2.appendChild(i2);r2.appendChild(f2);div.appendChild(r2);
     // beschreibung
     var dd=document.createElement('div');dd.style.marginBottom='13px';
     var dl=document.createElement('label');dl.style.cssText='display:block;font-size:0.58rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;';dl.textContent='Beschreibung';dd.appendChild(dl);
