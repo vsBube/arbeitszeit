@@ -556,6 +556,37 @@ function exportArchivText(id){
 function toggleKW(id){var b=document.getElementById('kwbody-'+id),a=document.getElementById('kwarrow-'+id);if(b)b.classList.toggle('open');if(a)a.classList.toggle('open');}
 function toggleUe(key){var b=document.getElementById('ueb-'+key),a=document.getElementById('uea-'+key);if(b)b.classList.toggle('open');if(a)a.classList.toggle('open');}
 
+function deleteVorgangFromArchiv(auftragsnr, vorgangsnr){
+  if(!confirm('Vorgang '+vorgangsnr+' löschen?\n\nDies entfernt diesen Vorgang aus allen archivierten Wochen.'))return;
+  // Remove from all KW entries
+  archiv.forEach(function(e){
+    e.gruppen=e.gruppen.filter(function(g){
+      return !(g.auftragsnr===auftragsnr&&g.vorgangsnr===vorgangsnr);
+    });
+  });
+  // Remove KW entries that have no gruppen left
+  archiv=archiv.filter(function(e){return e.gruppen.length>0;});
+  saveArchiv();
+  renderArchiv();
+}
+
+function deleteVorgangGesamt(auftragsnr, vorgangsnr){
+  var beschr = '';
+  if(archiv.length && archiv[0].gruppen){
+    var g = archiv.flatMap(function(e){return e.gruppen;}).find(function(g){return g.auftragsnr===auftragsnr&&g.vorgangsnr===vorgangsnr;});
+    if(g&&g.beschreibung) beschr = ' ('+g.beschreibung+')';
+  }
+  if(!confirm('Vorgang '+vorgangsnr+beschr+' aus der Gesamt\u00fcbersicht l\u00f6schen?\n\nDieser Vorgang wird aus allen archivierten Wochen entfernt.')) return;
+  archiv.forEach(function(e){
+    e.gruppen = e.gruppen.filter(function(g){
+      return !(g.auftragsnr===auftragsnr && g.vorgangsnr===vorgangsnr);
+    });
+  });
+  archiv = archiv.filter(function(e){return e.gruppen.length>0;});
+  saveArchiv();
+  renderArchiv();
+}
+
 function renderArchiv(){
   var container=document.getElementById('archivContent');
   if(!archiv.length){container.innerHTML='<div class="archiv-empty">Noch keine archivierten Wochen.<br><br>Eintr\u00e4ge im Tab \u201eAuftr\u00e4ge\u201c erfassen,<br>dann \u201eWoche abschliessen &amp; archivieren\u201c tippen.</div>';return;}
@@ -579,7 +610,16 @@ function renderArchiv(){
     var body=document.createElement('div');body.className='kw-body';body.id='ueb-'+k;
     Object.values(auf.vorgaenge).forEach(function(v){
       var vd=document.createElement('div');vd.className='kw-auftrag';
-      vd.innerHTML='<div class="kw-aufnr">Vorgang</div><div class="kw-aufnr-val" style="color:var(--accent4)">'+esc(v.vorgangsnr)+'</div><div class="kw-desc">'+esc(v.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(v.total)+'</div>';
+      vd.style.cssText='display:flex;align-items:flex-start;gap:8px;';
+      var vtxt=document.createElement('div');vtxt.style.flex='1';
+      vtxt.innerHTML='<div class="kw-aufnr">Vorgang</div><div class="kw-aufnr-val" style="color:var(--accent4)">'+esc(v.vorgangsnr)+'</div><div class="kw-desc">'+esc(v.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(v.total)+'</div>';
+      vd.appendChild(vtxt);
+      var vdel=document.createElement('button');vdel.className='del-btn';vdel.textContent='\u2715';
+      vdel.style.cssText='margin-top:4px;flex-shrink:0;';
+      (function(auftragsnr,vorgangsnr){
+        vdel.onclick=function(e){e.stopPropagation();deleteVorgangGesamt(auftragsnr,vorgangsnr);};
+      })(auf.auftragsnr,v.vorgangsnr);
+      vd.appendChild(vdel);
       body.appendChild(vd);
     });
     blk.appendChild(body);ues.appendChild(blk);
