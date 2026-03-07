@@ -114,9 +114,42 @@ button:active{transform:scale(0.97);opacity:0.85;}
 </head>
 <body>
 <header>
-  <h1>Arbeits<span>zeit</span></h1>
+  <h1>Arbeits<span>zeit</span> <button onclick="toggleInfo()" id="infoBtn" style="background:transparent;border:2px solid var(--red);border-radius:50%;width:26px;height:26px;padding:0;font-size:0.75rem;font-weight:600;color:var(--red);vertical-align:middle;position:relative;top:-3px;transition:all 0.2s;cursor:pointer;" onmouseover="this.style.background='var(--red)';this.style.color='#0d0f14';" onmouseout="this.style.background='transparent';this.style.color='var(--red)';">?</button></h1>
   <p>Browserdaten l&ouml;schen entfernt alle Eintr&auml;ge &nbsp;&bull;&nbsp; Archiv exportierbar</p>
 </header>
+
+<!-- Info Modal -->
+<div id="infoOverlay" onclick="toggleInfo()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;padding:20px;box-sizing:border-box;overflow-y:auto;">
+  <div onclick="event.stopPropagation()" style="background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:22px;max-width:440px;margin:40px auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span style="font-family:'Fraunces',serif;font-size:1.1rem;color:var(--accent);">&#128218; Kurzanleitung</span>
+      <button onclick="toggleInfo()" style="width:30px;height:30px;padding:0;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:1rem;">&#x2715;</button>
+    </div>
+    <div style="font-size:0.75rem;line-height:1.9;color:var(--text);">
+
+      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#9200; Tab: Feierabend</div>
+      <div style="color:var(--muted);margin-bottom:14px;">Ankunftszeit und Pausenzeiten eingeben &rarr; <b style="color:var(--text);">Berechnen</b> zeigt dir wann du gehen kannst (8h12min oder 9h Arbeitszeit).</div>
+
+      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128203; Tab: Auftr&auml;ge</div>
+      <div style="color:var(--muted);margin-bottom:6px;">Hier tr&auml;gst du deine Arbeitszeiten ein:</div>
+      <div style="color:var(--muted);margin-bottom:4px;">&#10102; <b style="color:var(--text);">Auftragsnr.</b> (8-stellig) und <b style="color:var(--text);">Vorgangsnr.</b> (4-stellig) eingeben &rarr; archivierte Nummern erscheinen als Vorschlag</div>
+      <div style="color:var(--muted);margin-bottom:4px;">&#10103; <b style="color:var(--text);">Datum</b> antippen &rarr; Datumswahl &ouml;ffnet sich</div>
+      <div style="color:var(--muted);margin-bottom:4px;">&#10104; <b style="color:var(--text);">Von / Bis</b> Zeiten eintragen</div>
+      <div style="color:var(--muted);margin-bottom:4px;">&#10105; Bei mehreren Zeitbl&ouml;cken pro Auftrag: <b style="color:var(--text);">+ Weiterer Zeitblock</b></div>
+      <div style="color:var(--muted);margin-bottom:4px;">&#10106; Bei mehreren Auftr&auml;gen: <b style="color:var(--text);">+ Neuen Auftrag hinzuf&uuml;gen</b></div>
+      <div style="color:var(--muted);margin-bottom:4px;">&#10107; <b style="color:var(--text);">Berechnen &amp; Auswerten</b> &rarr; zeigt Summe pro Auftrag und Total der Woche</div>
+      <div style="color:var(--muted);margin-bottom:14px;">&#10108; Am Ende der Arbeitswoche: <b style="color:var(--accent3);">Woche abschliessen &amp; archivieren</b> &rarr; speichert alle Eintr&auml;ge ins Archiv. Anschliessend mit <b style="color:var(--red);">Alle Auftr&auml;ge l&ouml;schen</b> den Bereich leeren &mdash; bereit f&uuml;r die n&auml;chste Woche.</div>
+
+      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128193; Tab: Archiv</div>
+      <div style="color:var(--muted);margin-bottom:4px;">Alle archivierten Wochen &rarr; antippen zum Aufklappen.</div>
+      <div style="color:var(--muted);margin-bottom:14px;"><b style="color:var(--text);">Gesamt&uuml;bersicht</b> zeigt die totale Arbeitszeit pro Auftrag &uuml;ber alle Wochen.</div>
+
+      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128190; Datensicherung</div>
+      <div style="color:var(--muted);">Alle Daten sind lokal im Browser gespeichert &ndash; nur auf diesem Ger&auml;t sichtbar. Im Archiv-Tab: <b style="color:var(--text);">Exportieren</b> erstellt ein Backup, <b style="color:var(--text);">Importieren</b> stellt es wieder her &ndash; auch auf einem anderen Ger&auml;t. <b style="color:var(--red);">Achtung:</b> Browserdaten l&ouml;schen entfernt alle Eintr&auml;ge!</div>
+    </div>
+    <button onclick="toggleInfo()" style="margin-top:18px;background:var(--accent);color:#0d0f14;">Verstanden &#10003;</button>
+  </div>
+</div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('feierabend')">&#9200; Feierabend</div>
   <div class="tab" onclick="switchTab('auftraege')">&#128203; Auftr&#228;ge</div>
@@ -613,6 +646,11 @@ function importDaten(event){
   };
   reader.readAsText(file);
   event.target.value='';
+}
+
+function toggleInfo(){
+  var o=document.getElementById('infoOverlay');
+  o.style.display=o.style.display==='none'?'block':'none';
 }
 
 load();loadArchiv();renderAll();
