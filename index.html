@@ -118,6 +118,9 @@ button:active{transform:scale(0.97);opacity:0.85;}
   <button onclick="toggleInfo()" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:transparent;border:2px solid var(--red);border-radius:50%;width:26px;height:26px;padding:0;font-size:0.75rem;font-weight:600;color:var(--red);cursor:pointer;" onmouseover="this.style.background='var(--red)';this.style.color='#0d0f14';" onmouseout="this.style.background='transparent';this.style.color='var(--red)';">?</button>
 </header>
 
+<!-- Add Auftrag to Archiv Modal -->
+<div id="addAuftragModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:300;padding:16px;box-sizing:border-box;overflow-y:auto;align-items:flex-start;justify-content:center;"></div>
+
 <!-- Archiv Edit Modal -->
 <div id="archivEditModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:200;padding:16px;box-sizing:border-box;overflow-y:auto;align-items:flex-start;justify-content:center;">
   <div onclick="event.stopPropagation()" style="background:var(--card);border:1px solid var(--accent2);border-radius:16px;padding:20px;max-width:480px;width:100%;margin:30px auto;">
@@ -148,7 +151,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
       <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#9200; Tab: Feierabend</div>
       <div style="color:var(--muted);margin-bottom:14px;">Ankunftszeit und Pausenzeiten eingeben &rarr; <b style="color:var(--text);">Berechnen</b> zeigt dir wann Feierabend ist (8h12min oder 9h Arbeitszeit).</div>
 
-      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128203; Tab: Auftr&auml;ge</div>
+      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128203; Tab: Arbeitswoche</div>
       <div style="color:var(--muted);margin-bottom:6px;">Hier tr&auml;gst du deine Arbeitszeiten ein:</div>
       <div style="color:var(--muted);margin-bottom:4px;">&#10102; <b style="color:var(--text);">Auftragsnr.</b> (8-stellig) und <b style="color:var(--text);">Vorgangsnr.</b> (4-stellig) eingeben &rarr; archivierte Nummern erscheinen als Vorschlag</div>
       <div style="color:var(--muted);margin-bottom:4px;">&#10103; <b style="color:var(--text);">Datum</b> antippen &rarr; Datumswahl &ouml;ffnet sich</div>
@@ -156,22 +159,22 @@ button:active{transform:scale(0.97);opacity:0.85;}
       <div style="color:var(--muted);margin-bottom:4px;">&#10105; Bei mehreren Zeitbl&ouml;cken pro Auftrag: <b style="color:var(--text);">+ Weiterer Zeitblock</b></div>
       <div style="color:var(--muted);margin-bottom:4px;">&#10106; Bei mehreren Auftr&auml;gen: <b style="color:var(--text);">+ Neuen Auftrag hinzuf&uuml;gen</b></div>
       <div style="color:var(--muted);margin-bottom:4px;">&#10107; <b style="color:var(--text);">Berechnen &amp; Auswerten</b> &rarr; zeigt Summe pro Auftrag und Total der Woche</div>
-      <div style="color:var(--muted);margin-bottom:14px;">&#10108; Am Ende der Arbeitswoche: <b style="color:var(--accent3);">Woche abschliessen &amp; archivieren</b> &rarr; speichert alle Eintr&auml;ge ins Archiv. Anschliessend mit <b style="color:var(--red);">Alle Auftr&auml;ge l&ouml;schen</b> den Bereich leeren &mdash; bereit f&uuml;r die n&auml;chste Woche.</div>
+      <div style="color:var(--muted);margin-bottom:14px;">&#10108; Am Ende der Arbeitswoche: <b style="color:var(--accent3);">Woche abschliessen &amp; erfassen</b> &rarr; speichert alle Eintr&auml;ge in &bdquo;Erfasste Wochen&ldquo;. Danach Best&auml;tigung zum automatischen L&ouml;schen der Eintr&auml;ge &mdash; bereit f&uuml;r die n&auml;chste Woche.</div>
 
-      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128193; Tab: Archiv</div>
-      <div style="color:var(--muted);margin-bottom:4px;">Alle archivierten Wochen &rarr; antippen zum Aufklappen.</div>
+      <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128193; Tab: Erfasste Wochen</div>
+      <div style="color:var(--muted);margin-bottom:4px;">Alle erfassten Arbeitswochen &rarr; antippen zum Aufklappen.</div>
       <div style="color:var(--muted);margin-bottom:14px;"><b style="color:var(--text);">Gesamt&uuml;bersicht</b> zeigt die totale Arbeitszeit pro Auftrag &uuml;ber alle Wochen.</div>
 
       <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128190; Datensicherung</div>
-      <div style="color:var(--muted);">Alle Daten werden dauerhaft im Browser gespeichert &ndash; sie bleiben erhalten wenn du den Browser schliesst, die Seite verlässt oder das Ger&auml;t ausschaltest. Nur auf diesem Ger&auml;t sichtbar.<br><br>Im Archiv-Tab: <b style="color:var(--text);">Exportieren</b> erstellt ein Backup, <b style="color:var(--text);">Importieren</b> stellt es wieder her &ndash; auch auf einem anderen Ger&auml;t.<br><br><b style="color:var(--red);">Achtung:</b> Nur das manuelle L&ouml;schen von Browserdaten (Cookies &amp; Website-Daten) entfernt alle Eintr&auml;ge &ndash; normales Surfen oder Neustart hat keinen Einfluss.</div>
+      <div style="color:var(--muted);">Alle Daten werden dauerhaft im Browser gespeichert &ndash; sie bleiben erhalten wenn du den Browser schliesst, die Seite verl&auml;sst, den Browser neu startest oder das Ger&auml;t ausschaltest. Die Daten sind nur auf diesem Ger&auml;t sichtbar.<br><br>Um die Daten auf ein anderes Ger&auml;t zu &uuml;bertragen oder zu sichern: Im Tab &bdquo;Erfasste Wochen&ldquo; mit <b style="color:var(--text);">Exportieren</b> ein Backup erstellen, mit <b style="color:var(--text);">Importieren</b> wiederherstellen.<br><br><b style="color:var(--red);">&#9888;&#65039; Achtung:</b> Das manuelle L&ouml;schen von Browserdaten (Cookies &amp; Website-Daten) l&ouml;scht alle Eintr&auml;ge unwiderruflich. Ohne vorherigen Export sind die Daten verloren.</div>
     </div>
     <button onclick="toggleInfo()" style="margin-top:18px;background:var(--accent);color:#0d0f14;">Verstanden &#10003;</button>
   </div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('feierabend')">&#9200; Feierabend</div>
-  <div class="tab" onclick="switchTab('auftraege')">&#128203; Auftr&#228;ge</div>
-  <div class="tab" onclick="switchTab('archiv')">&#128193; Archiv</div>
+  <div class="tab" onclick="switchTab('auftraege')">&#128203; Arbeitswoche</div>
+  <div class="tab" onclick="switchTab('archiv')">&#128193; Erfasste Wochen</div>
 </div>
 <div class="panel active" id="panel-feierabend">
   <div class="card">
@@ -183,7 +186,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
     <div class="error-msg" id="errorMsg"></div>
     <div class="result" id="result">
       <div class="result-card">
-        <div class="result-label">&#127937; Feierabend um</div>
+        
         <div class="result-times">
           <div class="result-block"><div class="result-block-label">8h 12min</div><div class="result-time green" id="feierabend8h">--:--</div></div>
           <div class="result-block"><div class="result-block-label">9 Stunden</div><div class="result-time blue" id="feierabend9h">--:--</div></div>
@@ -197,7 +200,8 @@ button:active{transform:scale(0.97);opacity:0.85;}
 <div class="panel" id="panel-auftraege">
   <div class="card">
     <div id="savedBadge" class="saved-badge" style="display:none">&#10003; Automatisch in Websitedaten gespeichert</div>
-    <div id="auftragList"></div>
+    <div id="kwTitle" style="font-family:'Fraunces',serif;font-size:1rem;color:var(--accent2);text-align:center;margin-bottom:8px;letter-spacing:0.05em;display:none;"></div>
+<div id="auftragList"></div>
     <button class="add-btn" onclick="addAuftrag()">+ Neuen Auftrag hinzuf&#252;gen</button>
     <div class="divider"></div>
     <button onclick="berechnenAuftraege()">Berechnen &amp; Auswerten</button>
@@ -209,7 +213,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
       </div>
       <button class="reset-btn" onclick="exportText()">&#128228; Als Text kopieren</button>
       <div class="divider"></div>
-      <button class="archive-btn" onclick="wocheArchivieren()">&#128193; Woche abschliessen &amp; archivieren</button>
+      <button class="archive-btn" onclick="wocheArchivieren()">&#128193; Woche abschliessen &amp; erfassen</button>
       <button class="clear-all-btn" onclick="clearAllAuftraege()">&#128465; Alle Auftr&#228;ge l&#246;schen</button>
     </div>
   </div>
@@ -286,6 +290,18 @@ function addZeit(aid){
   save();renderAll();
 }
 function removeZeit(aid,zid){if(!confirm('Eintrag wirklich l\u00f6schen?'))return;var a=auftraege.find(function(a){return a.id===aid;});if(!a)return;a.zeiten=a.zeiten.filter(function(z){return z.id!==zid;});save();renderAll();}
+function checkDuplicateAuftrag(aid){
+  var a=auftraege.find(function(a){return a.id===aid;});
+  if(!a||!a.auftragsnr||!a.vorgangsnr)return;
+  var dup=auftraege.find(function(b){
+    return b.id!==aid&&b.auftragsnr===a.auftragsnr&&b.vorgangsnr===a.vorgangsnr;
+  });
+  if(dup){
+    alert('⚠️ Auftrag '+a.auftragsnr+' / Vorgang '+a.vorgangsnr+' ist bereits erfasst.\n\nKein neuer Auftrag nötig – füge beim bestehenden Auftrag einfach einen neuen Zeitblock hinzu.');
+    // clear the duplicate entry's vorgangsnr so user must re-enter
+    a.vorgangsnr='';a.beschreibung='';save();renderAll();
+  }
+}
 function updA(aid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){a[f]=v;save();if(f==='auftragsnr'||f==='vorgangsnr')autoFillBeschreibung(aid);}}
 function autoFillBeschreibung(aid){
   var a=auftraege.find(function(a){return a.id===aid;});
@@ -306,7 +322,42 @@ function autoFillBeschreibung(aid){
   }
 }
 function updZ(aid,zid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){var z=a.zeiten.find(function(z){return z.id===zid;});if(z){z[f]=v;save();}}}
-function updZD(aid,zid,v){updZ(aid,zid,'datum',v);var b=document.getElementById('dbtn-'+zid);if(b){b.textContent=v?dk(v):'Datum';b.className=v?'datum-btn':'datum-btn empty';}}
+function getAuftraegeKW(){
+  // Returns the KW of the first dated entry, or null
+  var dates=[];
+  auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)dates.push(z.datum);});});
+  dates.sort();
+  return dates.length?{kw:getKW(dates[0]),ref:dates[0]}:null;
+}
+function updZD(aid,zid,v){
+  if(v){
+    var existing=getAuftraegeKW();
+    // Find the current datum of this entry to exclude it from check
+    var a=auftraege.find(function(a){return a.id===aid;});
+    var z=a?a.zeiten.find(function(z){return z.id===zid;}):null;
+    var oldDatum=z?z.datum:'';
+    if(existing&&oldDatum!==v){
+      var newKw=getKW(v);
+      if(newKw!==existing.kw){
+        alert('⚠️ Das Datum '+dk(v)+' gehört zu KW '+newKw+'.\n\nDie bestehenden Einträge gehören zu KW '+existing.kw+'. Bitte ein Datum aus KW '+existing.kw+' wählen oder zuerst die aktuelle Woche archivieren und die Aufträge löschen.');
+        // Reset the date picker
+        var el=document.getElementById('di-'+zid);if(el)el.value=oldDatum||'';
+        var b=document.getElementById('dbtn-'+zid);if(b){b.textContent=oldDatum?dk(oldDatum):'Datum';b.className=oldDatum?'datum-btn':'datum-btn empty';}
+        return;
+      }
+    }
+  }
+  updZ(aid,zid,'datum',v);
+  var b=document.getElementById('dbtn-'+zid);if(b){b.textContent=v?dk(v):'Datum';b.className=v?'datum-btn':'datum-btn empty';}
+  renderKWTitle();
+}
+function renderKWTitle(){
+  var titleEl=document.getElementById('kwTitle');
+  if(!titleEl)return;
+  var info=getAuftraegeKW();
+  titleEl.textContent=info?'KW '+info.kw:'';
+  titleEl.style.display=info?'block':'none';
+}
 function openDatum(zid){var el=document.getElementById('di-'+zid);if(!el)return;try{if(el.showPicker)el.showPicker();else el.click();}catch(e){el.click();}}
 
 function showAuftragSuggestAll(inp,aid){
@@ -334,6 +385,7 @@ function getArchivAuftragsnummern(){
 var activeSuggest=null;
 var activeInputId=null;
 var suppressFocus=false;
+var currentEditEid=null;
 function closeSuggest(){
   if(activeSuggest){activeSuggest.remove();activeSuggest=null;activeInputId=null;}
 }
@@ -368,7 +420,7 @@ function showAuftragSuggest(inp,aid){
   var nrs=getArchivAuftragsnummern();
   var keys=Object.keys(nrs);if(!keys.length)return;
   var val=inp.value.toLowerCase();
-  var filtered=keys.filter(function(k){return k.toLowerCase().includes(val);});
+  var filtered=keys.filter(function(k){return k.startsWith(val);});
   if(!filtered.length){closeSuggest();return;}
   buildAuftragDD(inp,aid,filtered,nrs);
 }
@@ -420,6 +472,9 @@ document.addEventListener('click',function(e){
 });
 
 function renderAll(){
+  // KW title above list
+  var kwTex=document.getElementById('kwTitle');
+  if(kwTex){var kwInfo=getAuftraegeKW();kwTex.textContent=kwInfo?'Arbeitswoche KW '+kwInfo.kw:'';kwTex.style.display=kwInfo?'block':'none';}
   var list=document.getElementById('auftragList');list.innerHTML='';
   auftraege.forEach(function(a,ai){
     var div=document.createElement('div');div.className='auftrag-block';
@@ -436,6 +491,7 @@ function renderAll(){
     var f2=document.createElement('div');f2.className='f';f2.style.position='relative';var l2=document.createElement('label');l2.textContent='Vorgangsnr.';f2.appendChild(l2);
     var i2=document.createElement('input');i2.type='text';i2.maxLength=4;i2.placeholder='____';i2.value=a.vorgangsnr||'';i2.setAttribute('data-aid',a.id);i2.setAttribute('data-aufid','vorg-'+a.id);
     i2.oninput=function(){var id=parseInt(this.getAttribute('data-aid'));updA(id,'vorgangsnr',this.value);showVorgangSuggest(this,id);};
+    i2.onblur=function(){var id=parseInt(this.getAttribute('data-aid'));setTimeout(function(){checkDuplicateAuftrag(id);},200);};
     f2.appendChild(i2);r2.appendChild(f2);div.appendChild(r2);
     // beschreibung
     var dd=document.createElement('div');dd.style.marginBottom='13px';
@@ -555,12 +611,15 @@ function wocheArchivieren(){
   var kw=getKW(ref),jahr=new Date(ref).getFullYear(),monat=new Date(ref).getMonth();
   var existing=archiv.filter(function(e){return e.kw===kw&&e.jahr===jahr;});
   if(existing.length){
-    alert('\u26a0\ufe0f KW '+kw+' ('+jahr+') ist bereits archiviert!\n\nIm Tab \u201eArchiv\u201c \u2192 KW '+kw+' aufklappen \u2192 \u270f\ufe0f Bearbeiten:\nZeitbl\u00f6cke k\u00f6nnen dort hinzugef\u00fcgt, bearbeitet oder gel\u00f6scht werden.');
+    alert('\u26a0\ufe0f KW '+kw+' ('+jahr+') ist bereits archiviert!\n\nIm Tab \u201eErfasste Wochen\u201c \u2192 KW '+kw+' aufklappen \u2192 \u270f\ufe0f Bearbeiten:\nZeitbl\u00f6cke k\u00f6nnen dort hinzugef\u00fcgt, bearbeitet oder gel\u00f6scht werden.');
     return;
   }
   if(!confirm('KW '+kw+' archivieren?\nDie Eintr\u00e4ge bleiben danach noch aktiv.'))return;
   archiv.push({id:Date.now(),kw:kw,jahr:jahr,monat:monat,datum_von:vd,datum_bis:bd,gruppen:Object.values(groups)});
-  saveArchiv();alert('\u2713 KW '+kw+' archiviert!');
+  saveArchiv();
+  if(confirm('\u2713 Arbeitswoche KW '+kw+' wurde erfasst!\n\nEintr\u00e4ge jetzt l\u00f6schen und Arbeitswoche f\u00fcr neue Eintr\u00e4ge leeren?')){
+    auftraege=[];aufId=0;zeitId=0;save();renderAll();
+  }
 }
 
 function deleteArchivEntry(id){
@@ -614,19 +673,195 @@ function deleteVorgangGesamt(auftragsnr, vorgangsnr){
   renderArchiv();
 }
 
+function openAddAuftragToArchiv(eid){
+  var m=document.getElementById('addAuftragModal');
+  m.innerHTML='';
+  var box=document.createElement('div');
+  box.style.cssText='background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:20px;max-width:420px;width:100%;margin:40px auto;';
+  var ttl=document.createElement('div');ttl.style.cssText='font-family:Fraunces,serif;font-size:1rem;color:var(--accent);margin-bottom:14px;';
+  ttl.textContent='Neuen Auftrag hinzufügen';box.appendChild(ttl);
+  // fields
+  function mkField(lbl,ph,maxl){
+    var f=document.createElement('div');f.className='f';f.style.cssText='margin-bottom:10px;position:relative;';
+    var l=document.createElement('label');l.textContent=lbl;f.appendChild(l);
+    var inp=document.createElement('input');inp.type='text';inp.placeholder=ph;inp.maxLength=maxl;
+    inp.style.cssText='width:100%;box-sizing:border-box;';
+    f.appendChild(inp);box.appendChild(f);return {inp:inp,wrap:f};
+  }
+  var f1=mkField('Auftragsnr.','________',8);var inpAnr=f1.inp;var wrapAnr=f1.wrap;
+  var f2=mkField('Vorgangsnr.','____',4);var inpVnr=f2.inp;var wrapVnr=f2.wrap;
+  var f3=mkField('Beschreibung','',60);var inpBes=f3.inp;
+
+  // Autosuggest for Auftragsnr
+  inpAnr.oninput=function(){
+    var val=this.value.toLowerCase();
+    var nrs=getArchivAuftragsnummern();
+    var keys=Object.keys(nrs).filter(function(k){return k.startsWith(val);});
+    if(!keys.length){closeSuggest();return;}
+    var dd=document.createElement('div');dd.className='suggest-dropdown';
+    keys.forEach(function(nr){
+      var item=document.createElement('div');item.className='suggest-item';
+      item.textContent=nr;
+      var sub=document.createElement('span');
+      sub.textContent=nrs[nr].map(function(v){return v.nr+(v.beschreibung?' ('+v.beschreibung+')':'');}).join(', ');
+      item.appendChild(sub);
+      item.addEventListener('click',function(e){
+        e.stopPropagation();
+        inpAnr.value=nr;inpVnr.value='';inpBes.value='';closeSuggest();
+      });
+      dd.appendChild(item);
+    });
+    wrapAnr.appendChild(dd);openSuggest(dd,'addauf-anr');
+  };
+
+  // Autosuggest for Vorgangsnr
+  function checkAddDuplicate(){
+    var anr=inpAnr.value.trim();var vnr=inpVnr.value.trim();
+    if(!anr||!vnr)return;
+    var e=archiv.find(function(x){return x.id===currentEditEid;});
+    if(!e)return;
+    var existing=e.gruppen.find(function(g){return g.auftragsnr===anr&&g.vorgangsnr===vnr;});
+    if(existing){
+      alert('⚠️ Auftrag '+anr+' / Vorgang '+vnr+' ist bereits in dieser KW erfasst.\n\nKein neuer Auftrag nötig – füge beim bestehenden Eintrag einfach einen neuen Zeitblock hinzu.');
+      inpVnr.value='';inpBes.value='';
+    } else {
+      // auto-fill Beschreibung if match found
+      var nrs=getArchivAuftragsnummern();
+      if(nrs[anr]){var v=nrs[anr].find(function(v){return v.nr===vnr;});if(v&&v.beschreibung&&!inpBes.value)inpBes.value=v.beschreibung;}
+    }
+  }
+  inpVnr.oninput=function(){
+    var anr=inpAnr.value.trim();if(!anr)return;
+    var nrs=getArchivAuftragsnummern();
+    var vorgaenge=nrs[anr];if(!vorgaenge||!vorgaenge.length){closeSuggest();return;}
+    var val=this.value;
+    var filtered=vorgaenge.filter(function(v){return v.nr.startsWith(val);});
+    if(!filtered.length){closeSuggest();return;}
+    var dd=document.createElement('div');dd.className='suggest-dropdown';
+    filtered.forEach(function(v){
+      var item=document.createElement('div');item.className='suggest-item';
+      item.textContent=v.nr;
+      if(v.beschreibung){var sub=document.createElement('span');sub.textContent=v.beschreibung;item.appendChild(sub);}
+      item.addEventListener('click',function(e){
+        e.stopPropagation();
+        inpVnr.value=v.nr;
+        if(v.beschreibung&&!inpBes.value)inpBes.value=v.beschreibung;
+        closeSuggest();
+        checkAddDuplicate();
+      });
+      dd.appendChild(item);
+    });
+    wrapVnr.appendChild(dd);openSuggest(dd,'addauf-vnr');
+  };
+  inpVnr.onblur=function(){setTimeout(function(){checkAddDuplicate();},200);};
+  var rowHdr=document.createElement('div');
+  rowHdr.style.cssText='display:grid;grid-template-columns:auto auto auto;gap:5px;font-size:0.65rem;color:var(--muted);margin-bottom:4px;';
+  rowHdr.innerHTML='<span>Datum</span><span>Von</span><span>Bis</span>';
+  box.appendChild(rowHdr);
+  var zeiten=[];
+  var zeitenDiv=document.createElement('div');box.appendChild(zeitenDiv);
+  function renderZeiten(){
+    zeitenDiv.innerHTML='';
+    zeiten.forEach(function(z,i){
+      var row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:auto auto auto auto;gap:5px;align-items:center;margin-bottom:6px;';
+      // date
+      var dwrap2=document.createElement('div');dwrap2.style.cssText='position:relative;';
+      var dinp2=document.createElement('input');dinp2.type='date';dinp2.value=z.datum||'';
+      dinp2.style.cssText='position:absolute;top:0;left:0;opacity:0;pointer-events:none;width:1px;height:1px;';
+      var dlbl2=document.createElement('button');dlbl2.type='button';
+      dlbl2.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:5px 7px;font-size:0.72rem;color:var(--text);white-space:nowrap;min-width:60px;text-align:center;cursor:pointer;width:100%;';
+      dlbl2.textContent=z.datum?dk2(z.datum):'—';
+      dlbl2.onclick=function(e){e.preventDefault();e.stopPropagation();dinp2.focus();try{dinp2.showPicker();}catch(ex){}};
+      (function(z2){dinp2.addEventListener('change',function(){
+        var newVal=this.value;
+        if(newVal){
+          var eRef=archiv.find(function(x){return x.id===eid;});
+          if(eRef){
+            var newKw=getKW(newVal);
+            if(newKw!==eRef.kw){
+              alert('⚠️ Das Datum '+dk(newVal)+' gehört zu KW '+newKw+', nicht zu KW '+eRef.kw+'.\n\nBitte das Datum ändern oder die KW '+newKw+' im Archiv bearbeiten.');
+              this.value=z2.datum||'';
+              dlbl2.textContent=z2.datum?dk2(z2.datum):'—';
+              return;
+            }
+          }
+        }
+        z2.datum=newVal;dlbl2.textContent=newVal?dk2(newVal):'—';
+      });})(z);
+      dwrap2.appendChild(dlbl2);dwrap2.appendChild(dinp2);
+      var vinp2=document.createElement('input');vinp2.type='time';vinp2.value=z.von||'';vinp2.style.cssText='font-size:0.72rem;padding:5px 7px;min-width:0;';
+      vinp2.addEventListener('change',function(){z.von=this.value;});
+      var binp2=document.createElement('input');binp2.type='time';binp2.value=z.bis||'';binp2.style.cssText='font-size:0.72rem;padding:5px 7px;min-width:0;';
+      binp2.addEventListener('change',function(){z.bis=this.value;});
+      var delbtn2=document.createElement('button');delbtn2.className='del-btn';delbtn2.textContent='✕';
+      delbtn2.style.cssText='width:28px;height:28px;padding:0;flex-shrink:0;';
+      (function(i2){delbtn2.onclick=function(){zeiten.splice(i2,1);renderZeiten();};})(i);
+      row.appendChild(dwrap2);row.appendChild(vinp2);row.appendChild(binp2);row.appendChild(delbtn2);
+      zeitenDiv.appendChild(row);
+    });
+  }
+  zeiten.push({datum:'',von:'',bis:''});renderZeiten();
+  var addz=document.createElement('button');
+  addz.style.cssText='width:100%;margin-top:4px;margin-bottom:12px;font-size:0.7rem;background:transparent;border:1px dashed var(--accent2);color:var(--accent2);border-radius:8px;padding:5px;cursor:pointer;';
+  addz.textContent='+ Weiterer Zeitblock';
+  addz.onclick=function(){zeiten.push({datum:'',von:'',bis:''});renderZeiten();};
+  box.appendChild(addz);
+  var btns=document.createElement('div');btns.style.cssText='display:flex;gap:8px;margin-top:4px;';
+  var savebtn=document.createElement('button');savebtn.style.cssText='flex:1;background:var(--accent);color:#0d0f14;';savebtn.textContent='✓ Hinzufügen';
+  savebtn.onclick=function(){
+    var anr=inpAnr.value.trim();var vnr=inpVnr.value.trim();
+    if(!anr||!vnr){alert('Auftragsnr. und Vorgangsnr. benötigt.');return;}
+    var valid=zeiten.filter(function(z){return z.von&&z.bis;});
+    if(!valid.length){alert('Mindestens ein Zeitblock mit Von/Bis benötigt.');return;}
+    var e=archiv.find(function(x){return x.id===eid;});
+    if(!e)return;
+    // Check duplicate
+    var existing=e.gruppen.find(function(g){return g.auftragsnr===anr&&g.vorgangsnr===vnr;});
+    if(existing){
+      alert('⚠️ Auftrag '+anr+' / Vorgang '+vnr+' ist bereits in dieser KW erfasst.\n\nKein neuer Auftrag nötig – füge beim bestehenden Eintrag einfach einen neuen Zeitblock hinzu.');
+      return;
+    }
+    valid.forEach(function(z){
+      var v=z.von?z.von.split(':').map(Number):[0,0];
+      var b=z.bis?z.bis.split(':').map(Number):[0,0];
+      var d=(b[0]*60+b[1])-(v[0]*60+v[1]);if(d<0)d+=24*60;z.dauer=d;
+    });
+    var tot=valid.reduce(function(s,z){return s+z.dauer;},0);
+    e.gruppen.push({auftragsnr:anr,vorgangsnr:vnr,beschreibung:inpBes.value.trim(),eintraege:valid,total:tot});
+    saveArchiv();m.style.display='none';openArchivEdit(eid);renderArchiv();
+  };
+  var cancelbtn=document.createElement('button');cancelbtn.style.cssText='background:var(--card2);border:1px solid var(--border);color:var(--muted);';cancelbtn.textContent='Abbrechen';
+  cancelbtn.onclick=function(){m.style.display='none';};
+  btns.appendChild(savebtn);btns.appendChild(cancelbtn);box.appendChild(btns);
+  m.appendChild(box);m.style.display='flex';
+}
+
 function renderArchivEditRow(gsec, g, ei, eid){
   var row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:auto auto auto auto;gap:5px;align-items:center;margin-bottom:6px;';
   // Datum: hidden date input + visible text button
   var dwrap=document.createElement('div');dwrap.style.cssText='position:relative;';
   var dinp=document.createElement('input');dinp.type='date';dinp.value=g.eintraege[ei].datum||'';
-  dinp.style.cssText='position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;';
+  dinp.style.cssText='position:absolute;top:0;left:0;opacity:0;pointer-events:none;width:1px;height:1px;';
   dinp.setAttribute('data-gi',g._gi);dinp.setAttribute('data-ei',ei);dinp.setAttribute('data-f','datum');
-  var dlbl=document.createElement('div');
-  dlbl.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:5px 7px;font-size:0.72rem;color:var(--text);white-space:nowrap;cursor:pointer;min-width:52px;text-align:center;';
+  var dlbl=document.createElement('button');dlbl.type='button';
+  dlbl.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:5px 7px;font-size:0.72rem;color:var(--text);white-space:nowrap;min-width:60px;text-align:center;cursor:pointer;width:100%;';
   dlbl.textContent=g.eintraege[ei].datum?dk2(g.eintraege[ei].datum):'—';
+  dlbl.onclick=function(e){e.preventDefault();e.stopPropagation();dinp.focus();try{dinp.showPicker();}catch(ex){}};
   dinp.addEventListener('change',function(){
-    g.eintraege[ei].datum=this.value;
-    dlbl.textContent=this.value?dk2(this.value):'—';
+    var newVal=this.value;
+    if(newVal){
+      var eRef=archiv.find(function(x){return x.id===eid;});
+      if(eRef){
+        var newKw=getKW(newVal);
+        if(newKw!==eRef.kw){
+          alert('⚠️ Das Datum '+dk(newVal)+' gehört zu KW '+newKw+', nicht zu KW '+eRef.kw+'.\n\nBitte das Datum ändern oder die KW '+newKw+' im Archiv bearbeiten.');
+          this.value=g.eintraege[ei].datum||'';
+          return;
+        }
+      }
+    }
+    g.eintraege[ei].datum=newVal;
+    dlbl.textContent=newVal?dk2(newVal):'—';
   });
   dwrap.appendChild(dlbl);dwrap.appendChild(dinp);
   var vinp=document.createElement('input');vinp.type='time';vinp.value=g.eintraege[ei].von||'';vinp.style.cssText='font-size:0.72rem;padding:5px 7px;min-width:0;';
@@ -676,11 +911,19 @@ function openArchivEdit(eid){
     addbtn.textContent='+ Zeitblock hinzufügen';
     (function(g2){addbtn.onclick=function(){
       g2.eintraege.push({datum:'',von:'',bis:'',dauer:0});
-      saveArchiv();openArchivEdit(eid);
+      openArchivEdit(eid);
     };})(g);
     gsec.appendChild(addbtn);
     body.appendChild(gsec);
   });
+  // Neuen Auftrag hinzufügen Button
+  var newaufbtn=document.createElement('button');
+  newaufbtn.style.cssText='width:100%;margin-top:8px;font-size:0.75rem;background:transparent;border:1px dashed var(--accent);color:var(--accent);border-radius:10px;padding:8px;cursor:pointer;';
+  newaufbtn.textContent='+ Neuen Auftrag hinzufügen';
+  newaufbtn.onclick=function(){openAddAuftragToArchiv(eid);};
+  body.appendChild(newaufbtn);
+
+  currentEditEid=eid;
   document.getElementById('archivEditSave').setAttribute('data-eid',eid);
   modal.style.display='flex';
 }
@@ -719,7 +962,7 @@ function saveArchivEdit(){
 
 function renderArchiv(){
   var container=document.getElementById('archivContent');
-  if(!archiv.length){container.innerHTML='<div class="archiv-empty">Noch keine archivierten Wochen.<br><br>Eintr\u00e4ge im Tab \u201eAuftr\u00e4ge\u201c erfassen,<br>dann \u201eWoche abschliessen &amp; archivieren\u201c tippen.</div>';return;}
+  if(!archiv.length){container.innerHTML='<div class="archiv-empty">Noch keine archivierten Wochen.<br><br>Eintr\u00e4ge im Tab \u201eAuftr\u00e4ge\u201c erfassen,<br>dann \u201eWoche abschliessen &amp; erfassen\u201c tippen.</div>';return;}
   container.innerHTML='';
   // Gesamtübersicht
   var byAuf={};
