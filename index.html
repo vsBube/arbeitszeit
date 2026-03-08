@@ -118,6 +118,24 @@ button:active{transform:scale(0.97);opacity:0.85;}
   <button onclick="toggleInfo()" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:transparent;border:2px solid var(--red);border-radius:50%;width:26px;height:26px;padding:0;font-size:0.75rem;font-weight:600;color:var(--red);cursor:pointer;" onmouseover="this.style.background='var(--red)';this.style.color='#0d0f14';" onmouseout="this.style.background='transparent';this.style.color='var(--red)';">?</button>
 </header>
 
+<!-- Archiv Edit Modal -->
+<div id="archivEditModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:200;padding:16px;box-sizing:border-box;overflow-y:auto;align-items:flex-start;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="background:var(--card);border:1px solid var(--accent2);border-radius:16px;padding:20px;max-width:480px;width:100%;margin:30px auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span id="archivEditTitle" style="font-family:'Fraunces',serif;font-size:1rem;color:var(--accent2);"></span>
+      <button onclick="document.getElementById('archivEditModal').style.display='none'" style="width:30px;height:30px;padding:0;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:1rem;">&#x2715;</button>
+    </div>
+    <div style="font-size:0.65rem;color:var(--muted);margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;padding:0 2px;">
+      <span>Datum</span><span>Von</span><span>Bis</span><span></span>
+    </div>
+    <div id="archivEditBody"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button id="archivEditSave" onclick="saveArchivEdit()" style="flex:1;background:var(--accent2);color:#0d0f14;">&#x2713; Speichern</button>
+      <button onclick="document.getElementById('archivEditModal').style.display='none'" style="background:var(--card2);border:1px solid var(--border);color:var(--muted);">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <!-- Info Modal -->
 <div id="infoOverlay" onclick="toggleInfo()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;padding:20px;box-sizing:border-box;overflow-y:auto;">
   <div onclick="event.stopPropagation()" style="background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:22px;max-width:440px;margin:40px auto;">
@@ -315,7 +333,6 @@ function closeSuggest(){
   if(activeSuggest){activeSuggest.remove();activeSuggest=null;activeInputId=null;}
 }
 function openSuggest(dd,inputId){
-  if(activeInputId===inputId){closeSuggest();return;}
   closeSuggest();
   activeSuggest=dd;
   activeInputId=inputId;
@@ -526,12 +543,17 @@ function getKW(iso){var d=new Date(iso);d.setHours(0,0,0,0);d.setDate(d.getDate(
 
 function wocheArchivieren(){
   if(!auftraege.length){alert('Keine Auftr\u00e4ge zum Archivieren.');return;}
-  if(!confirm('Aktuelle Woche archivieren?\nDie Eintr\u00e4ge bleiben danach noch aktiv.'))return;
   var groups=buildGroups(),dates=[];
   auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)dates.push(z.datum);});});
   dates.sort();
   var vd=dates[0]||'',bd=dates[dates.length-1]||'',ref=vd||new Date().toISOString().slice(0,10);
   var kw=getKW(ref),jahr=new Date(ref).getFullYear(),monat=new Date(ref).getMonth();
+  var existing=archiv.filter(function(e){return e.kw===kw&&e.jahr===jahr;});
+  if(existing.length){
+    alert('\u26a0\ufe0f KW '+kw+' ('+jahr+') ist bereits archiviert!\n\nIm Tab \u201eArchiv\u201c \u2192 KW '+kw+' aufklappen \u2192 \u270f\ufe0f Bearbeiten:\nZeitbl\u00f6cke k\u00f6nnen dort hinzugef\u00fcgt, bearbeitet oder gel\u00f6scht werden.');
+    return;
+  }
+  if(!confirm('KW '+kw+' archivieren?\nDie Eintr\u00e4ge bleiben danach noch aktiv.'))return;
   archiv.push({id:Date.now(),kw:kw,jahr:jahr,monat:monat,datum_von:vd,datum_bis:bd,gruppen:Object.values(groups)});
   saveArchiv();alert('\u2713 KW '+kw+' archiviert!');
 }
@@ -584,6 +606,98 @@ function deleteVorgangGesamt(auftragsnr, vorgangsnr){
   });
   archiv = archiv.filter(function(e){return e.gruppen.length>0;});
   saveArchiv();
+  renderArchiv();
+}
+
+function renderArchivEditRow(gsec, g, ei, eid){
+  var row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px;';
+  var dinp=document.createElement('input');dinp.type='date';dinp.value=g.eintraege[ei].datum||'';dinp.style.cssText='font-size:0.72rem;padding:5px 7px;';
+  dinp.setAttribute('data-gi',g._gi);dinp.setAttribute('data-ei',ei);dinp.setAttribute('data-f','datum');
+  var vinp=document.createElement('input');vinp.type='time';vinp.value=g.eintraege[ei].von||'';vinp.style.cssText='font-size:0.72rem;padding:5px 7px;';
+  vinp.setAttribute('data-gi',g._gi);vinp.setAttribute('data-ei',ei);vinp.setAttribute('data-f','von');
+  var binp=document.createElement('input');binp.type='time';binp.value=g.eintraege[ei].bis||'';binp.style.cssText='font-size:0.72rem;padding:5px 7px;';
+  binp.setAttribute('data-gi',g._gi);binp.setAttribute('data-ei',ei);binp.setAttribute('data-f','bis');
+  var delbtn=document.createElement('button');delbtn.className='del-btn';delbtn.textContent='✕';
+  delbtn.style.cssText='width:28px;height:28px;padding:0;flex-shrink:0;';
+  (function(g2,ei2){delbtn.onclick=function(){
+    if(!confirm('Zeiteintrag löschen?'))return;
+    g2.eintraege.splice(ei2,1);
+    if(g2.eintraege.length===0){
+      var e2=archiv.find(function(x){return x.id===eid;});
+      if(e2){e2.gruppen=e2.gruppen.filter(function(x){return x!==g2;});}
+    }
+    var e3=archiv.find(function(x){return x.id===eid;});
+    if(e3&&e3.gruppen.length===0){
+      archiv=archiv.filter(function(x){return x.id!==eid;});
+      saveArchiv();document.getElementById('archivEditModal').style.display='none';renderArchiv();return;
+    }
+    if(g2.eintraege.length>0)recalcGruppe(g2);
+    saveArchiv();openArchivEdit(eid);
+  };})(g,ei);
+  row.appendChild(dinp);row.appendChild(vinp);row.appendChild(binp);row.appendChild(delbtn);
+  gsec.appendChild(row);
+}
+
+function openArchivEdit(eid){
+  var e=archiv.find(function(x){return x.id===eid;});if(!e)return;
+  var modal=document.getElementById('archivEditModal');
+  var body=document.getElementById('archivEditBody');
+  var title=document.getElementById('archivEditTitle');
+  title.textContent='KW '+e.kw+' '+e.jahr+' bearbeiten';
+  body.innerHTML='';
+  e.gruppen.forEach(function(g,gi){
+    g._gi=gi;
+    var gsec=document.createElement('div');gsec.style.cssText='margin-bottom:14px;border:1px solid var(--border);border-radius:10px;padding:10px;';
+    var gtitle=document.createElement('div');gtitle.style.cssText='font-size:0.7rem;color:var(--accent);margin-bottom:8px;';
+    gtitle.textContent='Auftrag '+g.auftragsnr+' · Vorgang '+g.vorgangsnr+(g.beschreibung?' · '+g.beschreibung:'');
+    gsec.appendChild(gtitle);
+    g.eintraege.forEach(function(en,ei){
+      renderArchivEditRow(gsec,g,ei,eid);
+    });
+    // + Zeitblock button
+    var addbtn=document.createElement('button');
+    addbtn.style.cssText='width:100%;margin-top:4px;font-size:0.7rem;background:transparent;border:1px dashed var(--accent2);color:var(--accent2);border-radius:8px;padding:5px;cursor:pointer;';
+    addbtn.textContent='+ Zeitblock hinzufügen';
+    (function(g2){addbtn.onclick=function(){
+      g2.eintraege.push({datum:'',von:'',bis:'',dauer:0});
+      saveArchiv();openArchivEdit(eid);
+    };})(g);
+    gsec.appendChild(addbtn);
+    body.appendChild(gsec);
+  });
+  document.getElementById('archivEditSave').setAttribute('data-eid',eid);
+  modal.style.display='flex';
+}
+
+function recalcGruppe(g){
+  var tot=0;
+  g.eintraege.forEach(function(en){
+    var v=en.von?en.von.split(':').map(Number):[0,0];
+    var b=en.bis?en.bis.split(':').map(Number):[0,0];
+    var d=(b[0]*60+b[1])-(v[0]*60+v[1]);
+    if(d<0)d+=24*60;
+    en.dauer=d;tot+=d;
+  });
+  g.total=tot;
+}
+
+function saveArchivEdit(){
+  var eid=parseInt(document.getElementById('archivEditSave').getAttribute('data-eid'));
+  var e=archiv.find(function(x){return x.id===eid;});if(!e)return;
+  var inputs=document.getElementById('archivEditBody').querySelectorAll('input');
+  inputs.forEach(function(inp){
+    var gi=parseInt(inp.getAttribute('data-gi'));
+    var ei=parseInt(inp.getAttribute('data-ei'));
+    var f=inp.getAttribute('data-f');
+    if(e.gruppen[gi]&&e.gruppen[gi].eintraege[ei]){
+      e.gruppen[gi].eintraege[ei][f]=inp.value;
+    }
+  });
+  e.gruppen.forEach(function(g){recalcGruppe(g);});
+  var kt=e.gruppen.reduce(function(s,g){return s+g.total;},0);
+  e.total=kt;
+  saveArchiv();
+  document.getElementById('archivEditModal').style.display='none';
   renderArchiv();
 }
 
@@ -650,9 +764,10 @@ function renderArchiv(){
       ktb.innerHTML='<div class="kw-total-box-label">Total KW '+e.kw+'</div><div class="kw-total-box-val">'+minToHM(kt)+'</div>';
       kbody.appendChild(ktb);
       var ac=document.createElement('div');ac.className='kw-actions';
+      var editb=document.createElement('button');editb.className='kw-btn';editb.textContent='\u270f\ufe0f Bearbeiten';editb.setAttribute('data-eid',e.id);editb.onclick=function(){openArchivEdit(parseInt(this.getAttribute('data-eid')));};
       var eb=document.createElement('button');eb.className='kw-btn';eb.textContent='\ud83d\udce4 Kopieren';eb.setAttribute('data-eid',e.id);eb.onclick=function(){exportArchivText(parseInt(this.getAttribute('data-eid')));};
       var db2=document.createElement('button');db2.className='kw-btn red';db2.textContent='\ud83d\uddd1 L\u00f6schen';db2.setAttribute('data-eid',e.id);db2.onclick=function(){deleteArchivEntry(parseInt(this.getAttribute('data-eid')));};
-      ac.appendChild(eb);ac.appendChild(db2);kbody.appendChild(ac);kb.appendChild(kbody);md.appendChild(kb);
+      ac.appendChild(editb);ac.appendChild(eb);ac.appendChild(db2);kbody.appendChild(ac);kb.appendChild(kbody);md.appendChild(kb);
     });
     container.appendChild(md);
   });
