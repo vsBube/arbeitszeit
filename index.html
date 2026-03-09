@@ -309,7 +309,8 @@ function checkDuplicateAuftrag(aid){
 function updA(aid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){a[f]=v;save();if(f==='auftragsnr'||f==='vorgangsnr')autoFillBeschreibung(aid);}}
 function autoFillBeschreibung(aid){
   var a=auftraege.find(function(a){return a.id===aid;});
-  if(!a||!a.auftragsnr||!a.vorgangsnr||a.beschreibung)return;
+  if(!a||!a.auftragsnr||!a.vorgangsnr)return;
+  var inp=document.querySelector('input[data-aid="'+aid+'"][placeholder="Auftragsbeschreibung..."]');
   // Search archive for matching auftragsnr + vorgangsnr
   for(var i=0;i<archiv.length;i++){
     var e=archiv[i];
@@ -317,13 +318,13 @@ function autoFillBeschreibung(aid){
       var g=e.gruppen[j];
       if(g.auftragsnr===a.auftragsnr&&g.vorgangsnr===a.vorgangsnr&&g.beschreibung){
         a.beschreibung=g.beschreibung;save();
-        // Update the input field visually
-        var inp=document.querySelector('input[data-aid="'+aid+'"][placeholder="Auftragsbeschreibung..."]');
-        if(inp)inp.value=g.beschreibung;
+        if(inp){inp.value=g.beschreibung;inp.readOnly=true;inp.style.opacity='0.6';inp.title='Beschreibung aus erfassten Wochen übernommen';}
         return;
       }
     }
   }
+  // No match found - unlock field
+  if(inp){inp.readOnly=false;inp.style.opacity='1';inp.title='';}
 }
 function updZ(aid,zid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){var z=a.zeiten.find(function(z){return z.id===zid;});if(z){z[f]=v;save();}}}
 function getAuftraegeKW(){
@@ -502,7 +503,13 @@ function renderAll(){
     // beschreibung
     var dd=document.createElement('div');dd.style.marginBottom='13px';
     var dl=document.createElement('label');dl.style.cssText='display:block;font-size:0.58rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;';dl.textContent='Beschreibung';dd.appendChild(dl);
-    var di=document.createElement('input');di.type='text';di.placeholder='Auftragsbeschreibung...';di.value=a.beschreibung||'';di.setAttribute('data-aid',a.id);di.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'beschreibung',this.value);};dd.appendChild(di);div.appendChild(dd);
+    var di=document.createElement('input');di.type='text';di.placeholder='Auftragsbeschreibung...';di.value=a.beschreibung||'';di.setAttribute('data-aid',a.id);di.oninput=function(){updA(parseInt(this.getAttribute('data-aid')),'beschreibung',this.value);};
+    // Lock if auftrag+vorgang known in archive
+    if(a.auftragsnr&&a.vorgangsnr){
+      var matched=false;
+      for(var ai=0;ai<archiv.length&&!matched;ai++){for(var aj=0;aj<archiv[ai].gruppen.length&&!matched;aj++){var ag=archiv[ai].gruppen[aj];if(ag.auftragsnr===a.auftragsnr&&ag.vorgangsnr===a.vorgangsnr&&ag.beschreibung){matched=true;}}}
+      if(matched){di.readOnly=true;di.style.opacity='0.6';di.title='Beschreibung aus erfassten Wochen übernommen';}
+    }dd.appendChild(di);div.appendChild(dd);
     // zeiten
     var zl=document.createElement('div');zl.className='zeit-list';
     a.zeiten.forEach(function(z,zi){
