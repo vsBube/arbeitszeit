@@ -80,7 +80,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
 .auftrag-result-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-bottom:10px;text-align:left;}
 .res-aufnr-label{font-size:0.58rem;color:var(--accent4);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;}
 .res-aufnr-val{font-size:0.9rem;color:var(--text);margin-bottom:2px;}
-.res-desc{font-size:0.65rem;color:var(--muted);margin-bottom:8px;}
+.res-desc{font-size:0.9rem;color:var(--muted);margin-bottom:8px;}
 .res-total{font-family:'Fraunces',serif;font-size:1.55rem;color:var(--accent4);font-weight:600;}
 .res-detail{font-size:0.63rem;color:var(--muted);margin-top:6px;line-height:1.65;}
 .res-detail span{color:var(--text);}
@@ -98,10 +98,10 @@ button:active{transform:scale(0.97);opacity:0.85;}
 .kw-arrow.open{transform:rotate(180deg);}
 .kw-body{display:none;padding:0 14px 12px;border-top:1px solid var(--border);}
 .kw-body.open{display:block;}
-.kw-auftrag{margin-top:10px;}
+.kw-auftrag{margin-top:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;}
 .kw-aufnr{font-size:0.62rem;color:var(--accent4);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2px;}
 .kw-aufnr-val{font-size:0.85rem;color:var(--text);margin-bottom:1px;}
-.kw-desc{font-size:0.63rem;color:var(--muted);margin-bottom:4px;}
+.kw-desc{font-size:0.85rem;color:var(--muted);margin-bottom:4px;}
 .kw-total{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--accent4);font-weight:600;}
 .kw-detail{font-size:0.62rem;color:var(--muted);line-height:1.6;margin-top:3px;}
 .kw-detail span{color:var(--text);}
@@ -569,7 +569,7 @@ function berechnenAuftraege(){
     wt+=g.total;
     var div=document.createElement('div');div.className='auftrag-result-item';
     var det=g.eintraege.map(function(e){return (e.datum?'<span>'+dk(e.datum)+'</span> ':'')+'<span>'+e.von+' \u2013 '+e.bis+'</span> = '+minToHM(e.dauer);}).join('<br>');
-    div.innerHTML='<div class="res-aufnr-label">Auftrag</div><div class="res-aufnr-val">'+esc(g.auftragsnr)+' \u00b7 Vorgang <span style="color:var(--accent4)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="res-total">'+minToHM(g.total)+'</div><div class="res-detail">'+det+'</div>';
+    div.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="res-aufnr-label" style="min-width:120px;">Auftrag</span><span class="res-aufnr-label">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="res-aufnr-val" style="min-width:120px;">'+esc(g.auftragsnr)+'</span><span class="res-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="res-total">'+minToHM(g.total)+'</div><div class="res-detail">'+det+'</div>';
     container.appendChild(div);
   });
   // Determine KW from all dates in current auftraege
@@ -1031,7 +1031,7 @@ function renderArchiv(){
       e.gruppen.forEach(function(g){
         var gd=document.createElement('div');gd.className='kw-auftrag';
         var det=g.eintraege.map(function(en){return (en.datum?'<span>'+dk(en.datum)+'</span> ':'')+'<span>'+en.von+' \u2013 '+en.bis+'</span> = '+minToHM(en.dauer);}).join('<br>');
-        gd.innerHTML='<div class="kw-aufnr">Auftrag</div><div class="kw-aufnr-val">'+esc(g.auftragsnr)+' \u00b7 Vorgang <span style="color:var(--accent4)">'+esc(g.vorgangsnr)+'</span></div><div class="kw-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(g.total)+'</div><div class="kw-detail">'+det+'</div>';
+        gd.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="kw-aufnr" style="min-width:110px;">Auftrag</span><span class="kw-aufnr">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="kw-aufnr-val" style="min-width:110px;">'+esc(g.auftragsnr)+'</span><span class="kw-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="kw-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(g.total)+'</div><div class="kw-detail">'+det+'</div>';
         kbody.appendChild(gd);
       });
       var ktb=document.createElement('div');ktb.className='kw-total-box';
