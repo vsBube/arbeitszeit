@@ -159,7 +159,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
       <div style="color:var(--muted);margin-bottom:4px;">&#10104; <b style="color:var(--text);">Von / Bis</b> Zeiten eintragen</div>
       <div style="color:var(--muted);margin-bottom:4px;">&#10105; Mehrere Zeitbl&ouml;cke pro Auftrag: <b style="color:var(--text);">+ Weiterer Zeitblock</b></div>
       <div style="color:var(--muted);margin-bottom:4px;">&#10106; Mehrere Auftr&auml;ge: <b style="color:var(--text);">+ Neuen Auftrag hinzuf&uuml;gen</b></div>
-      <div style="color:var(--muted);margin-bottom:4px;">&#10107; <b style="color:var(--text);">Berechnen &amp; Auswerten</b> &rarr; zeigt Summe pro Auftrag und Total der Woche</div>
+      <div style="color:var(--muted);margin-bottom:4px;">&#10107; <b style="color:var(--text);">Berechnen &amp; Auswerten</b> &rarr; zeigt Summe pro Auftrag und Total der Woche. Jeden Auftrag nach dem &Uuml;bertrag ins Firmensystem (SAP) mit dem K&auml;stchen <b style="color:var(--text);">Erfasst</b> abhaken &rarr; Feld f&auml;rbt sich gr&uuml;n. Die Markierungen bleiben gespeichert bis zur n&auml;chsten Berechnung.</div>
       <div style="color:var(--muted);margin-bottom:14px;">&#10108; Am Ende der Woche: <b style="color:var(--accent3);">Woche abschliessen &amp; erfassen</b> &rarr; speichert alle Eintr&auml;ge in &bdquo;Erfasste Wochen&ldquo;, danach Best&auml;tigung zum automatischen L&ouml;schen &mdash; bereit f&uuml;r die n&auml;chste Woche.</div>
 
       <div style="color:var(--accent);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">&#128193; Tab: Erfasste Wochen</div>
@@ -569,8 +569,12 @@ function berechnenAuftraege(){
     wt+=g.total;
     var div=document.createElement('div');div.className='auftrag-result-item';
     var det=g.eintraege.map(function(e){return (e.datum?'<span>'+dk(e.datum)+'</span> ':'')+'<span>'+e.von+' \u2013 '+e.bis+'</span> = '+minToHM(e.dauer);}).join('<br>');
-    div.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="res-aufnr-label" style="min-width:120px;">Auftrag</span><span class="res-aufnr-label">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="res-aufnr-val" style="min-width:120px;">'+esc(g.auftragsnr)+'</span><span class="res-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="res-total">'+minToHM(g.total)+'</div><div class="res-detail">'+det+'</div>';
+    var ckKey='check_'+g.auftragsnr+'_'+g.vorgangsnr;
+    var ckChecked=localStorage.getItem(ckKey)==='1';
+    if(ckChecked)div.style.background='rgba(100,200,80,0.10)';
+    div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="display:flex;margin-bottom:2px;"><span class="res-aufnr-label" style="min-width:120px;">Auftrag</span><span class="res-aufnr-label">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="res-aufnr-val" style="min-width:120px;">'+esc(g.auftragsnr)+'</span><span class="res-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div></div><label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0 0 10px;"><input type="checkbox" class="auswert-check" data-key="'+ckKey+'" '+(ckChecked?'checked':'')+' style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent);"><span style="font-size:0.5rem;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;">Erfasst</span></label></div><div class="res-total">'+minToHM(g.total)+'</div><div class="res-detail">'+det+'</div>';
     container.appendChild(div);
+    (function(d,key){d.querySelector('.auswert-check').onchange=function(){if(this.checked){localStorage.setItem(key,'1');d.style.background='rgba(100,200,80,0.10)';}else{localStorage.removeItem(key);d.style.background='';};};})(div,ckKey);
   });
   // Determine KW from all dates in current auftraege
   var allDates2=[];
