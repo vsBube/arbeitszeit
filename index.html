@@ -56,7 +56,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
 .saved-badge{display:inline-block;background:rgba(200,240,96,0.12);border:1px solid rgba(200,240,96,0.35);color:var(--accent);border-radius:6px;font-size:0.58rem;padding:3px 8px;letter-spacing:0.06em;margin-bottom:12px;}
 .auftrag-block{background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:14px;animation:fadeUp 0.2s ease;}
 .auftrag-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
-.auftrag-title{font-size:0.6rem;color:var(--accent4);letter-spacing:0.1em;text-transform:uppercase;}
+.auftrag-title{font-size:0.9rem;color:var(--accent4);letter-spacing:0.02em;}
 .row2{display:flex;gap:8px;margin-bottom:13px;}
 .row2 .f{flex:1;}
 .row2 .f label{display:block;font-size:0.58rem;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
@@ -78,9 +78,9 @@ button:active{transform:scale(0.97);opacity:0.85;}
 .suggest-item span{display:block;font-size:0.6rem;color:var(--muted);margin-top:2px;}
 .input-wrap{position:relative;}
 .auftrag-result-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-bottom:10px;text-align:left;}
-.res-aufnr-label{font-size:0.58rem;color:var(--accent4);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;}
+.res-aufnr-label{font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;}
 .res-aufnr-val{font-size:0.9rem;color:var(--text);margin-bottom:2px;}
-.res-desc{font-size:0.9rem;color:var(--muted);margin-bottom:8px;}
+.res-desc{font-size:0.9rem;color:var(--accent4);margin-bottom:8px;}
 .res-total{font-family:'Fraunces',serif;font-size:1.55rem;color:var(--accent4);font-weight:600;}
 .res-detail{font-size:0.63rem;color:var(--muted);margin-top:6px;line-height:1.65;}
 .res-detail span{color:var(--text);}
@@ -92,16 +92,16 @@ button:active{transform:scale(0.97);opacity:0.85;}
 .monat-header{font-family:'Fraunces',serif;font-size:1.1rem;color:var(--accent);font-weight:300;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 .kw-block{background:var(--bg);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden;}
 .kw-header{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;cursor:pointer;}
-.kw-title{font-size:0.7rem;color:var(--accent2);letter-spacing:0.08em;text-transform:uppercase;}
+.kw-title{font-size:0.7rem;color:var(--text);letter-spacing:0.08em;text-transform:uppercase;}
 .kw-meta{font-size:0.62rem;color:var(--muted);margin-top:2px;}
 .kw-arrow{color:var(--muted);font-size:0.7rem;transition:transform 0.2s;flex-shrink:0;}
 .kw-arrow.open{transform:rotate(180deg);}
 .kw-body{display:none;padding:0 14px 12px;border-top:1px solid var(--border);}
 .kw-body.open{display:block;}
 .kw-auftrag{margin-top:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;}
-.kw-aufnr{font-size:0.62rem;color:var(--accent4);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2px;}
+.kw-aufnr{font-size:0.62rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2px;}
 .kw-aufnr-val{font-size:0.85rem;color:var(--text);margin-bottom:1px;}
-.kw-desc{font-size:0.85rem;color:var(--muted);margin-bottom:4px;}
+.kw-desc{font-size:0.85rem;color:var(--accent4);margin-bottom:4px;}
 .kw-total{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--accent4);font-weight:600;}
 .kw-detail{font-size:0.62rem;color:var(--muted);line-height:1.6;margin-top:3px;}
 .kw-detail span{color:var(--text);}
@@ -322,7 +322,7 @@ function checkDuplicateAuftrag(aid){
     a.vorgangsnr='';a.beschreibung='';save();renderAll();
   }
 }
-function updA(aid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){a[f]=v;save();if(f==='auftragsnr'||f==='vorgangsnr')autoFillBeschreibung(aid);}}
+function updA(aid,f,v){var a=auftraege.find(function(a){return a.id===aid;});if(a){a[f]=v;save();if(f==='auftragsnr'||f==='vorgangsnr')autoFillBeschreibung(aid);if(f==='beschreibung'){var ttlEl=document.getElementById('ttl-'+aid);if(ttlEl)ttlEl.textContent=v||('Auftrag '+(auftraege.indexOf(a)+1));}}}
 function autoFillBeschreibung(aid){
   var a=auftraege.find(function(a){return a.id===aid;});
   if(!a||!a.auftragsnr||!a.vorgangsnr)return;
@@ -335,6 +335,7 @@ function autoFillBeschreibung(aid){
       if(g.auftragsnr===a.auftragsnr&&g.vorgangsnr===a.vorgangsnr&&g.beschreibung){
         a.beschreibung=g.beschreibung;save();
         if(inp){inp.value=g.beschreibung;inp.readOnly=true;inp.style.opacity='0.6';inp.title='Beschreibung aus erfassten Wochen übernommen';}
+        var ttlEl=document.getElementById('ttl-'+aid);if(ttlEl)ttlEl.textContent=g.beschreibung;
         return;
       }
     }
@@ -507,7 +508,7 @@ function renderAll(){
     if(sapChecked){div.style.background='rgba(100,200,80,0.06)';div.style.borderColor='rgba(100,200,80,0.3)';}
     // header
     var hdr=document.createElement('div');hdr.className='auftrag-header';
-    var ttl=document.createElement('span');ttl.className='auftrag-title';ttl.textContent='Auftrag '+(ai+1);hdr.appendChild(ttl);
+    var ttl=document.createElement('span');ttl.className='auftrag-title';ttl.textContent=a.beschreibung||('Auftrag '+(ai+1));ttl.id='ttl-'+a.id;hdr.appendChild(ttl);
     var xb=document.createElement('button');xb.className='del-btn';xb.textContent='\u2715';xb.setAttribute('data-aid',a.id);if(sapChecked){xb.style.opacity='0.6';xb.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{xb.onclick=function(){removeAuftrag(parseInt(this.getAttribute('data-aid')));};};hdr.appendChild(xb);div.appendChild(hdr);
     // nr row
     var r2=document.createElement('div');r2.className='row2';
@@ -536,7 +537,7 @@ function renderAll(){
       var en=document.createElement('div');en.className='zeit-entry';en.id='zeit-'+z.id;
       if(sapChecked){en.style.background='rgba(100,200,80,0.06)';en.style.borderColor='rgba(100,200,80,0.25)';}
       var eh=document.createElement('div');eh.className='zeit-entry-header';
-      var elb=document.createElement('span');elb.className='zeit-entry-label';elb.textContent='Eintrag '+(zi+1);eh.appendChild(elb);
+      var elb=document.createElement('span');elb.className='zeit-entry-label';elb.textContent='Zeitblock '+(zi+1);eh.appendChild(elb);
       if(a.zeiten.length>1){var xz=document.createElement('button');xz.className='del-btn';xz.textContent='\u2715';xz.setAttribute('data-aid',a.id);xz.setAttribute('data-zid',z.id);if(sapChecked){xz.style.opacity='0.6';xz.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{xz.onclick=function(){removeZeit(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')));};};eh.appendChild(xz);}
       else{var ph=document.createElement('div');ph.style.width='30px';eh.appendChild(ph);}
       en.appendChild(eh);
@@ -1031,7 +1032,7 @@ function renderArchiv(){
     var blk=document.createElement('div');blk.className='kw-block';
     var hdr=document.createElement('div');hdr.className='kw-header';hdr.setAttribute('data-k',k);hdr.onclick=function(){toggleUe(this.getAttribute('data-k'));};
     var vnames=Object.values(auf.vorgaenge).map(function(v){return esc(v.beschreibung||v.vorgangsnr);}).join(' / ');
-    hdr.innerHTML='<div><div class="kw-title">'+esc(auf.auftragsnr)+'</div><div class="kw-meta">'+minToHM(auf.total)+' gesamt</div><div class="kw-meta" style="color:var(--muted);margin-top:1px;font-size:0.6rem;">'+vnames+'</div></div><span class="kw-arrow" id="uea-'+k+'">\u25bc</span>';
+    hdr.innerHTML='<div><div class="kw-title">'+esc(auf.auftragsnr)+'</div><div class="kw-meta">'+minToHM(auf.total)+' gesamt</div><div class="kw-meta" style="color:var(--muted);margin-top:1px;font-size:0.6rem;color:var(--accent4);">'+vnames+'</div></div><span class="kw-arrow" id="uea-'+k+'">\u25bc</span>';
     blk.appendChild(hdr);
     var body=document.createElement('div');body.className='kw-body';body.id='ueb-'+k;
     Object.values(auf.vorgaenge).forEach(function(v){
@@ -1039,7 +1040,7 @@ function renderArchiv(){
       vd.style.cssText='display:flex;align-items:flex-start;gap:8px;';
       var vtxt=document.createElement('div');vtxt.style.flex='1';
       var kwsLabel=v.kws&&v.kws.length?'<span style="font-size:0.62rem;color:var(--muted);margin-left:6px;">(KW '+v.kws.join(', ')+')</span>':'';
-      vtxt.innerHTML='<div class="kw-aufnr">Vorgang</div><div class="kw-aufnr-val" style="color:var(--accent4)">'+esc(v.vorgangsnr)+'</div><div class="kw-desc">'+esc(v.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(v.total)+kwsLabel+'</div>';
+      vtxt.innerHTML='<div class="kw-aufnr">Vorgang</div><div class="kw-aufnr-val">'+esc(v.vorgangsnr)+'</div><div class="kw-desc">'+esc(v.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(v.total)+kwsLabel+'</div>';
       vd.appendChild(vtxt);
       var vdel=document.createElement('button');vdel.className='del-btn';vdel.textContent='\u2715';
       vdel.style.cssText='margin-top:4px;flex-shrink:0;';
@@ -1064,7 +1065,7 @@ function renderArchiv(){
       var kt=e.gruppen.reduce(function(s,g){return s+g.total;},0);
       var kb=document.createElement('div');kb.className='kw-block';
       var kh=document.createElement('div');kh.className='kw-header';kh.setAttribute('data-kwid',e.id);kh.onclick=function(){toggleKW(parseInt(this.getAttribute('data-kwid')));};
-      kh.innerHTML='<div><div class="kw-title">KW '+e.kw+' <span style="color:var(--accent);font-size:0.75rem;">'+minToHM(kt)+'</span></div><div class="kw-meta">'+kl+'</div></div><span class="kw-arrow" id="kwarrow-'+e.id+'">\u25bc</span>';
+      kh.innerHTML='<div><div class="kw-title">KW '+e.kw+' <span style="color:var(--accent4);font-size:0.75rem;">'+minToHM(kt)+'</span></div><div class="kw-meta">'+kl+'</div></div><span class="kw-arrow" id="kwarrow-'+e.id+'">\u25bc</span>';
       kb.appendChild(kh);
       var kbody=document.createElement('div');kbody.className='kw-body';kbody.id='kwbody-'+e.id;
       e.gruppen.forEach(function(g){
