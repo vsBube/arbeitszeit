@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taschenrechner</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Nunito:wght@400;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  /* subtle grid bg */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+
+  .calc {
+    width: 320px;
+    background: #16213e;
+    border-radius: 24px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 24px 60px rgba(0,0,0,0.6),
+      0 4px 12px rgba(0,0,0,0.4);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* top accent bar */
+  .calc::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #e94560, #f5a623, #0f3460);
+  }
+
+  /* ── Display ── */
+  .display {
+    background: #0f3460;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Scrolling tape */
+  .tape {
+    height: 160px;
+    overflow-y: auto;
+    padding: 0.7rem 1.1rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    scroll-behavior: smooth;
+  }
+  .tape::-webkit-scrollbar { width: 3px; }
+  .tape::-webkit-scrollbar-track { background: transparent; }
+  .tape::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+  .tape-line {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    text-align: right;
+    white-space: nowrap;
+    line-height: 1.5;
+  }
+  .tape-line.type-input  { color: rgba(255,255,255,0.4); }
+  .tape-line.type-op     { color: #f5a623; }
+  .tape-line.type-result {
+    color: #7ec8e3;
+    font-size: 0.95rem;
+    font-weight: bold;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 0.15rem;
+    margin-bottom: 0.4rem;
+  }
+
+  /* Current input display */
+  .display-current {
+    padding: 0.4rem 1.1rem 0.85rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+  }
+  .display-pending {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: #f5a623;
+    min-height: 1em;
+  }
+  .display-main {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2.2rem;
+    color: #fff;
+    letter-spacing: 0.02em;
+    word-break: break-all;
+    text-align: right;
+    line-height: 1.1;
+    transition: font-size 0.1s;
+  }
+  .display-main.small  { font-size: 1.7rem; }
+  .display-main.xsmall { font-size: 1.3rem; }
+
+  .tape-clear {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.18);
+    background: none; border: none; cursor: pointer;
+    padding: 0.15rem 1.1rem; text-align: right; width: 100%;
+    transition: color 0.12s;
+  }
+  .tape-clear:hover { color: rgba(255,255,255,0.45); }
+
+  /* ── Button grid ── */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.04);
+    padding: 1px;
+  }
+
+  .btn {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: filter 0.08s, transform 0.08s;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn:active {
+    filter: brightness(1.25);
+    transform: scale(0.95);
+  }
+
+  /* Ripple */
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.12);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .btn:active::after { opacity: 1; }
+
+  /* Number buttons */
+  .btn-num {
+    background: #1a2a4a;
+    color: #e8eaf0;
+  }
+  .btn-num:hover { background: #1e3055; }
+
+  /* Operator buttons */
+  .btn-op {
+    background: #1e3a5f;
+    color: #f5a623;
+    font-size: 1.3rem;
+  }
+  .btn-op:hover { background: #254870; }
+
+  /* Equals */
+  .btn-eq {
+    background: #e94560;
+    color: #fff;
+    font-size: 1.4rem;
+  }
+  .btn-eq:hover { background: #f05070; }
+
+  /* Function buttons (AC, +/-, %) */
+  .btn-fn {
+    background: #253555;
+    color: #7ec8e3;
+    font-size: 0.95rem;
+  }
+  .btn-fn:hover { background: #2d3f66; }
+
+  /* Wide button (0) */
+  .btn-wide {
+    grid-column: span 2;
+  }
+
+  /* ── Keyboard hint ── */
+  .hint {
+    text-align: center;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.2);
+    padding: 0.6rem;
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+
+<div class="calc">
+  <div class="display">
+    <div class="tape" id="tape"></div>
+    <button class="tape-clear" onclick="clearTape()">Verlauf löschen ✕</button>
+    <div class="display-current">
+      <div class="display-pending" id="pending"></div>
+      <div class="display-main" id="display">0</div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <!-- Row 1 -->
+    <button class="btn btn-fn" onclick="pressAC()">AC</button>
+    <button class="btn btn-fn" onclick="pressSign()">+/−</button>
+    <button class="btn btn-fn" onclick="pressPct()">%</button>
+    <button class="btn btn-op" onclick="pressOp('÷')">÷</button>
+
+    <!-- Row 2 -->
+    <button class="btn btn-num" onclick="pressNum('7')">7</button>
+    <button class="btn btn-num" onclick="pressNum('8')">8</button>
+    <button class="btn btn-num" onclick="pressNum('9')">9</button>
+    <button class="btn btn-op" onclick="pressOp('×')">×</button>
+
+    <!-- Row 3 -->
+    <button class="btn btn-num" onclick="pressNum('4')">4</button>
+    <button class="btn btn-num" onclick="pressNum('5')">5</button>
+    <button class="btn btn-num" onclick="pressNum('6')">6</button>
+    <button class="btn btn-op" onclick="pressOp('−')">−</button>
+
+    <!-- Row 4 -->
+    <button class="btn btn-num" onclick="pressNum('1')">1</button>
+    <button class="btn btn-num" onclick="pressNum('2')">2</button>
+    <button class="btn btn-num" onclick="pressNum('3')">3</button>
+    <button class="btn btn-op" onclick="pressOp('+')">+</button>
+
+    <!-- Row 5 -->
+    <button class="btn btn-num btn-wide" onclick="pressNum('0')">0</button>
+    <button class="btn btn-num" onclick="pressDecimal()">,</button>
+    <button class="btn btn-eq" onclick="pressEquals()">=</button>
+  </div>
+
+  <div class="hint">Tastatur wird unterstützt</div>
+</div>
+
+<script>
+  let displayVal = '0';
+  let storedVal  = null;
+  let currentOp  = null;
+  let justCalc   = false;
+
+  // ── Tape ──────────────────────────────────────────────────
+  function addTape(text, type) {
+    const tape = document.getElementById('tape');
+    const line = document.createElement('div');
+    line.className = 'tape-line type-' + type;
+    line.textContent = text;
+    tape.appendChild(line);
+    tape.scrollTop = tape.scrollHeight;
+  }
+
+  function clearTape() {
+    document.getElementById('tape').innerHTML = '';
+  }
+
+  // ── Display ───────────────────────────────────────────────
+  function updateDisplay(pendingStr) {
+    const el = document.getElementById('display');
+    el.textContent = formatNum(displayVal);
+    const len = el.textContent.length;
+    el.className = 'display-main' + (len > 12 ? ' xsmall' : len > 9 ? ' small' : '');
+    document.getElementById('pending').textContent = pendingStr || '';
+  }
+
+  function formatNum(str) {
+    if(str === 'Fehler') return 'Fehler';
+    if(str.endsWith('.') || str === '-' || str === '-0') return str.replace('.', ',');
+    const n = parseFloat(str);
+    if(isNaN(n)) return str;
+    if(Math.abs(n) < 1e12 && (Math.abs(n) >= 1e-6 || n === 0)) {
+      const parts = str.split('.');
+      const sign = str.startsWith('-') ? '−' : '';
+      const intPart = parts[0].replace('-', '');
+      const intFormatted = parseInt(intPart || '0').toLocaleString('de-CH');
+      return sign + intFormatted + (parts[1] !== undefined ? ',' + parts[1] : '');
+    }
+    return parseFloat(n.toPrecision(10)).toString().replace('.', ',');
+  }
+
+  function cleanNum(n) {
+    return parseFloat(n.toPrecision(12)).toString();
+  }
+
+  // ── Input ─────────────────────────────────────────────────
+  function pressNum(d) {
+    if(justCalc) {
+      displayVal = d;
+      justCalc = false;
+    } else if(displayVal === '0' || displayVal === '-0') {
+      displayVal = (displayVal.startsWith('-') ? '-' : '') + d;
+    } else if(displayVal.replace('-','').length < 12) {
+      displayVal += d;
+    }
+    updateDisplay(currentOp ? formatNum(String(storedVal)) + ' ' + currentOp : '');
+  }
+
+  function pressDecimal() {
+    if(justCalc) { displayVal = '0.'; justCalc = false; }
+    else if(!displayVal.includes('.')) displayVal += '.';
+    updateDisplay(currentOp ? formatNum(String(storedVal)) + ' ' + currentOp : '');
+  }
+
+  // ── Operators ─────────────────────────────────────────────
+  function pressOp(op) {
+    if(currentOp && !justCalc) {
+      calculate(false);
+    } else {
+      // log current number to tape only when starting new chain
+      if(!justCalc) addTape(formatNum(displayVal), 'input');
+    }
+    addTape('  ' + op, 'op');
+    storedVal = parseFloat(displayVal);
+    currentOp = op;
+    justCalc  = true;
+    updateDisplay(formatNum(displayVal) + ' ' + op);
+  }
+
+  function pressEquals() {
+    if(currentOp === null) return;
+    calculate(true);
+  }
+
+  function calculate(final) {
+    const a = storedVal;
+    const b = parseFloat(displayVal);
+    let result;
+    switch(currentOp) {
+      case '+': result = a + b; break;
+      case '−': result = a - b; break;
+      case '×': result = a * b; break;
+      case '÷': result = b === 0 ? NaN : a / b; break;
+      default: return;
+    }
+
+    // Log the second operand
+    addTape(formatNum(displayVal), 'input');
+
+    if(isNaN(result)) {
+      addTape('= Fehler', 'result');
+      displayVal = 'Fehler';
+      currentOp = null; storedVal = null; justCalc = true;
+      updateDisplay('');
+      return;
+    }
+
+    const resStr = cleanNum(result);
+    addTape('= ' + formatNum(resStr), 'result');
+    displayVal = resStr;
+    if(final) { currentOp = null; storedVal = null; }
+    else { storedVal = result; addTape(formatNum(resStr), 'input'); }
+    justCalc = true;
+    updateDisplay('');
+  }
+
+  // ── Functions ─────────────────────────────────────────────
+  function pressAC() {
+    displayVal = '0';
+    storedVal  = null;
+    currentOp  = null;
+    justCalc   = false;
+    updateDisplay('');
+  }
+
+  function pressSign() {
+    if(displayVal === '0' || displayVal === 'Fehler') return;
+    displayVal = displayVal.startsWith('-') ? displayVal.slice(1) : '-' + displayVal;
+    updateDisplay(currentOp ? formatNum(String(storedVal)) + ' ' + currentOp : '');
+  }
+
+  function pressPct() {
+    const n = parseFloat(displayVal);
+    if(isNaN(n)) return;
+    displayVal = cleanNum(n / 100);
+    updateDisplay(currentOp ? formatNum(String(storedVal)) + ' ' + currentOp : '');
+  }
+
+  // ── Keyboard ──────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if(e.key >= '0' && e.key <= '9') pressNum(e.key);
+    else if(e.key === '.' || e.key === ',') pressDecimal();
+    else if(e.key === '+') pressOp('+');
+    else if(e.key === '-') pressOp('−');
+    else if(e.key === '*') pressOp('×');
+    else if(e.key === '/') { e.preventDefault(); pressOp('÷'); }
+    else if(e.key === 'Enter' || e.key === '=') pressEquals();
+    else if(e.key === 'Escape') pressAC();
+    else if(e.key === 'Backspace') {
+      if(displayVal === 'Fehler') { displayVal = '0'; }
+      else if(displayVal.length > 1) {
+        displayVal = displayVal.slice(0, -1);
+        if(displayVal === '-') displayVal = '0';
+      } else { displayVal = '0'; }
+      updateDisplay(currentOp ? formatNum(String(storedVal)) + ' ' + currentOp : '');
+    }
+    else if(e.key === '%') pressPct();
+  });
+
+  updateDisplay('');
+</script>
+</body>
+</html>
