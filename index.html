@@ -43,6 +43,7 @@ button:active{transform:scale(0.97);opacity:0.85;}
 .result.visible{display:block;}
 .result-card{background:var(--bg);border:1px solid var(--accent);border-radius:14px;padding:16px 18px;animation:fadeUp 0.35s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
 .result-label{font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;text-align:center;}
 .result-times{display:flex;gap:10px;margin-bottom:4px;}
 .result-block{flex:1;background:var(--card);border-radius:10px;padding:11px 8px;text-align:center;border:1px solid var(--border);}
@@ -115,7 +116,8 @@ button:active{transform:scale(0.97);opacity:0.85;}
 </head>
 <body>
 <header style="width:100%;max-width:440px;position:relative;text-align:center;">
-  <h1>Arbeits<span>zeit</span></h1>
+  <h1 id="mainTitle">Arbeits<span>zeit</span></h1>
+  <div id="sapReminder" style="display:none;font-size:0.7rem;color:var(--accent3);letter-spacing:0.06em;margin-top:4px;animation:pulse 2s infinite;">&#128203; Heute SAP-Eintrag nicht vergessen!</div>
   <button onclick="toggleInfo()" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:transparent;border:2px solid var(--red);border-radius:50%;width:26px;height:26px;padding:0;font-size:0.75rem;font-weight:600;color:var(--red);cursor:pointer;" onmouseover="this.style.background='var(--red)';this.style.color='#0d0f14';" onmouseout="this.style.background='transparent';this.style.color='var(--red)';">?</button>
 </header>
 
@@ -618,6 +620,24 @@ function berechnenAuftraege(){
   } else {
     wb.innerHTML='<div class="week-total-label">Total</div><div class="week-total-val">'+minToHM(wt)+'</div>';
   }
+  // Day totals
+  var dayNames=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var dayTotals={};
+  auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum&&z.von&&z.bis){var d=new Date(z.datum);var dow=d.getDay();var dur=toMin(z.bis)-toMin(z.von);if(dur>0){if(!dayTotals[z.datum])dayTotals[z.datum]={dow:dow,name:dayNames[dow],total:0};dayTotals[z.datum].total+=dur;}}});});
+  var sortedDays=Object.keys(dayTotals).sort();
+  if(sortedDays.length>0){
+    var dtDiv=document.createElement('div');
+    dtDiv.style.cssText='margin-top:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:0.7rem;';
+    var dtHtml='<div style="font-size:0.58rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Tagestotale</div>';
+    sortedDays.forEach(function(d){
+      var day=dayTotals[d];
+      var dt=new Date(d);
+      var label=('0'+dt.getDate()).slice(-2)+'. '+['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt.getMonth()];
+      dtHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:var(--muted);">'+day.name+' '+label+'</span><span style="color:var(--text);font-family:\'Fraunces\',serif;">'+minToHM(day.total)+'</span></div>';
+    });
+    dtDiv.innerHTML=dtHtml;
+    container.appendChild(dtDiv);
+  }
   container.appendChild(wb);
   res.classList.add('visible');
   var bb=document.getElementById('btnBerechnen');if(bb)bb.textContent='NEU BERECHNEN & AUSWERTEN';
@@ -632,6 +652,21 @@ function exportText(){
     g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
     text+='\n';
   });
+  // Day totals in export text
+  var dayNamesEx=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var dayTotalsEx={};
+  auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum&&z.von&&z.bis){var dur=toMin(z.bis)-toMin(z.von);if(dur>0){if(!dayTotalsEx[z.datum])dayTotalsEx[z.datum]={dow:new Date(z.datum).getDay(),total:0};dayTotalsEx[z.datum].total+=dur;}}});});
+  var sortedEx=Object.keys(dayTotalsEx).sort();
+  if(sortedEx.length){
+    text+='Tagestotale\n'+'-'.repeat(20)+'\n';
+    sortedEx.forEach(function(d){var dd=new Date(d);var lbl=dayNamesEx[dd.getDay()]+' '+('0'+dd.getDate()).slice(-2)+'.'+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dd.getMonth()];text+=lbl+': '+minToHM(dayTotalsEx[d].total)+'\n';});
+    text+='\n';
+  }
+  // Week total
+  var allDatesEx=[];auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)allDatesEx.push(z.datum);});});allDatesEx.sort();
+  var kwSetEx={};allDatesEx.forEach(function(d){kwSetEx[getKW(d)]=true;});var kwKeysEx=Object.keys(kwSetEx);
+  var wtEx=0;auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.von&&z.bis){var d=toMin(z.bis)-toMin(z.von);if(d>0)wtEx+=d;}});});
+  text+=(kwKeysEx.length===1?'Total KW '+kwKeysEx[0]:'Total')+': '+minToHM(wtEx)+'\n';
   try{navigator.clipboard.writeText(text).then(function(){alert('\u2713 Text kopiert!');});}
   catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('\u2713 Text kopiert!');}
 }
@@ -688,6 +723,19 @@ function exportArchivText(id){
     g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
     text+='\n';
   });
+  // Day totals
+  var dayNamesC=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var dayTotalsC={};
+  entry.gruppen.forEach(function(g){g.eintraege.forEach(function(en){if(en.datum){var dur=en.dauer||0;if(dur>0){if(!dayTotalsC[en.datum])dayTotalsC[en.datum]={dow:new Date(en.datum).getDay(),total:0};dayTotalsC[en.datum].total+=dur;}}});});
+  var sortedC=Object.keys(dayTotalsC).sort();
+  if(sortedC.length){
+    text+='Tagestotale\n'+'-'.repeat(20)+'\n';
+    sortedC.forEach(function(d){var dd=new Date(d);var lbl=dayNamesC[dd.getDay()]+' '+('0'+dd.getDate()).slice(-2)+'.'+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dd.getMonth()];text+=lbl+': '+minToHM(dayTotalsC[d].total)+'\n';});
+    text+='\n';
+  }
+  // Week total
+  var kt2=entry.gruppen.reduce(function(s,g){return s+g.total;},0);
+  text+='Total KW '+entry.kw+': '+minToHM(kt2)+'\n';
   try{navigator.clipboard.writeText(text).then(function(){alert('\u2713 Text kopiert!');});}
   catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('\u2713 Text kopiert!');}
 }
@@ -1074,6 +1122,25 @@ function renderArchiv(){
         gd.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="kw-aufnr" style="min-width:110px;">Auftrag</span><span class="kw-aufnr">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="kw-aufnr-val" style="min-width:110px;">'+esc(g.auftragsnr)+'</span><span class="kw-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="kw-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(g.total)+'</div><div class="kw-detail">'+det+'</div>';
         kbody.appendChild(gd);
       });
+
+      // Day totals for this KW
+      var dayNames2=['So','Mo','Di','Mi','Do','Fr','Sa'];
+      var dayTotals2={};
+      e.gruppen.forEach(function(g){g.eintraege.forEach(function(en){if(en.datum){var d2=new Date(en.datum);var dt2=d2.getDay();if(!dayTotals2[en.datum])dayTotals2[en.datum]={dow:dt2,name:dayNames2[dt2],total:0};dayTotals2[en.datum].total+=en.dauer;}});});
+      var sortedDays2=Object.keys(dayTotals2).sort();
+      if(sortedDays2.length>0){
+        var dtDiv2=document.createElement('div');
+        dtDiv2.style.cssText='margin-bottom:8px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;font-size:0.7rem;';
+        var dtHtml2='<div style="font-size:0.58rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Tagestotale</div>';
+        sortedDays2.forEach(function(d2){
+          var day2=dayTotals2[d2];
+          var dt3=new Date(d2);
+          var lbl=('0'+dt3.getDate()).slice(-2)+'. '+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt3.getMonth()];
+          dtHtml2+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:var(--muted);">'+day2.name+' '+lbl+'</span><span style="color:var(--text);font-family:\'Fraunces\',serif;">'+minToHM(day2.total)+'</span></div>';
+        });
+        dtDiv2.innerHTML=dtHtml2;
+        kbody.appendChild(dtDiv2);
+      }
       var ktb=document.createElement('div');ktb.className='kw-total-box';
       ktb.innerHTML='<div class="kw-total-box-label">Total KW '+e.kw+'</div><div class="kw-total-box-val">'+minToHM(kt)+'</div>';
       kbody.appendChild(ktb);
@@ -1122,6 +1189,19 @@ function toggleInfo(){
   o.style.display=o.style.display==='none'?'block':'none';
 }
 
+// SAP reminder: Friday (5) or last day of month
+(function(){
+  var now=new Date();
+  var dow=now.getDay(); // 5=Friday
+  var lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  var isReminder=(dow===5||now.getDate()===lastDay);
+  if(isReminder){
+    var t=document.getElementById('mainTitle');
+    if(t){t.style.color='var(--accent3)';t.style.textShadow='0 0 20px rgba(240,160,96,0.6)';}
+    var r=document.getElementById('sapReminder');
+    if(r)r.style.display='block';
+  }
+})();
 load();loadArchiv();renderAll();
 if(auftraege.length===0)addAuftrag();
 // Restore auswertung after reload
