@@ -673,7 +673,6 @@ function berechnenAuftraege(){
       gRow.appendChild(gVal);
       div.appendChild(gRow);
     }
-    div.innerHTML+='';
     container.appendChild(div);
 
     (function(d,key){d.querySelector('.auswert-check').onchange=function(){if(this.checked){localStorage.setItem(key,'1');d.style.background='rgba(100,200,80,0.10)';}else{localStorage.removeItem(key);d.style.background='';}renderAll();
