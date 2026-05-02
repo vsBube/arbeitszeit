@@ -237,7 +237,8 @@ button:active{transform:scale(0.97);opacity:0.85;}
 <script>
 function toMin(v){if(!v||!/^\d{1,2}:\d{2}$/.test(v))return NaN;var p=v.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
 function toHHMM(m){var h=Math.floor(m/60)%24,n=m%60;return pad(h)+':'+pad(n);}
-function minToHM(m){var h=Math.floor(m/60),n=m%60;return h+'h '+pad(n)+'min';}
+function minToDez(m){var h=Math.floor(m/60),n=m%60;return h+'h '+pad(n)+'min';}
+function minToDez(m){return (m/60).toFixed(2).replace('.',',')+'h';}
 function pad(n){return String(n).padStart(2,'0');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 var MO=['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
@@ -270,15 +271,16 @@ function berechnen(){
   var aM=toMin(a),psM=toMin(ps),peM=toMin(pe);
   if(psM<=aM){err.textContent='Pausenstart muss nach der Ankunft liegen.';err.classList.add('visible');return;}
   if(peM<=psM){err.textContent='Pausenende muss nach dem Pausenstart liegen.';err.classList.add('visible');return;}
-  var p=peM-psM;
+  var p=Math.max(30,peM-psM);
+  var effPeM=psM+p;
   var end8=aM+(8*60+12)+p;
   var end9=aM+9*60+p;
   document.getElementById('feierabend8h').textContent=toHHMM(end8);
   document.getElementById('feierabend9h').textContent=toHHMM(end9);
   var r8el=document.getElementById('remaining8h');
   var r9el=document.getElementById('remaining9h');
-  var aft8=end8-peM;
-  var aft9=end9-peM;
+  var aft8=end8-effPeM;
+  var aft9=end9-effPeM;
   if(r8el)r8el.textContent=Math.floor(aft8/60)+'h '+('0'+aft8%60).slice(-2)+'min nach Mittag';
   if(r9el)r9el.textContent=Math.floor(aft9/60)+'h '+('0'+aft9%60).slice(-2)+'min nach Mittag';
   document.getElementById('resultDetails').innerHTML='Ankunft: <span>'+toHHMM(aM)+'</span><br>Pause: <span>'+toHHMM(psM)+' \u2013 '+toHHMM(peM)+'</span> ('+p+' Min.)';
@@ -544,28 +546,30 @@ function renderAll(){
     a.zeiten.forEach(function(z,zi){
       var en=document.createElement('div');en.className='zeit-entry';en.id='zeit-'+z.id;
       var isNachtrag=z.nachtrag===true;
-      if(sapChecked&&!isNachtrag){en.style.background='rgba(100,200,80,0.06)';en.style.borderColor='rgba(100,200,80,0.25)';}
-      if(isNachtrag){en.style.borderColor='rgba(192,96,240,0.4)';en.style.background='rgba(192,96,240,0.05)';}
+      var nkLocked=isNachtrag&&localStorage.getItem('ntr_'+a.auftragsnr+'_'+a.vorgangsnr)==='1';
+      if((sapChecked&&!isNachtrag)||nkLocked){en.style.background='rgba(100,200,80,0.06)';en.style.borderColor='rgba(100,200,80,0.25)';}
+      if(isNachtrag&&!nkLocked){en.style.borderColor='rgba(192,96,240,0.4)';en.style.background='rgba(192,96,240,0.05)';}
+      if(nkLocked){en.style.background='rgba(100,200,80,0.06)';en.style.borderColor='rgba(100,200,80,0.25)';}
       var eh=document.createElement('div');eh.className='zeit-entry-header';
       var elb=document.createElement('span');elb.className='zeit-entry-label';var regularCount=a.zeiten.slice(0,zi+1).filter(function(x){return !x.nachtrag;}).length;
       var nachtragCount=a.zeiten.slice(0,zi+1).filter(function(x){return x.nachtrag;}).length;
       elb.textContent=z.nachtrag?'Nachtrag '+nachtragCount:'Zeitblock '+regularCount;
       if(z.nachtrag)elb.style.color='var(--accent4)';eh.appendChild(elb);
-      if(a.zeiten.length>1){var xz=document.createElement('button');xz.className='del-btn';xz.textContent='\u2715';xz.setAttribute('data-aid',a.id);xz.setAttribute('data-zid',z.id);if(sapChecked){xz.style.opacity='0.6';xz.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{xz.onclick=function(){removeZeit(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')));};};eh.appendChild(xz);}
+      if(a.zeiten.length>1){var xz=document.createElement('button');xz.className='del-btn';xz.textContent='\u2715';xz.setAttribute('data-aid',a.id);xz.setAttribute('data-zid',z.id);if((sapChecked&&!isNachtrag)||nkLocked){xz.style.opacity='0.6';xz.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{xz.onclick=function(){removeZeit(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')));};};eh.appendChild(xz);}
       else{var ph=document.createElement('div');ph.style.width='30px';eh.appendChild(ph);}
       en.appendChild(eh);
       var row=document.createElement('div');row.className='zeit-row';
       // datum
       var zfd=document.createElement('div');zfd.className='zf';var zld=document.createElement('label');zld.textContent='Datum';zfd.appendChild(zld);
       var hd=document.createElement('input');hd.type='date';hd.id='di-'+z.id;hd.value=z.datum||'';hd.style.cssText='position:absolute;visibility:hidden;width:0;height:0;';hd.setAttribute('data-aid',a.id);hd.setAttribute('data-zid',z.id);hd.onchange=function(){updZD(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),this.value);};zfd.appendChild(hd);
-      var db=document.createElement('button');db.type='button';db.id='dbtn-'+z.id;db.className=z.datum?'datum-btn':'datum-btn empty';db.textContent=z.datum?dk(z.datum):'Datum';db.setAttribute('data-zid',z.id);if(sapChecked){db.style.opacity='0.7';db.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{db.onclick=function(){openDatum(parseInt(this.getAttribute('data-zid')));};};zfd.appendChild(db);row.appendChild(zfd);
+      var db=document.createElement('button');db.type='button';db.id='dbtn-'+z.id;db.className=z.datum?'datum-btn':'datum-btn empty';db.textContent=z.datum?dk(z.datum):'Datum';db.setAttribute('data-zid',z.id);if((sapChecked&&!isNachtrag)||nkLocked){db.style.opacity='0.7';db.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{db.onclick=function(){openDatum(parseInt(this.getAttribute('data-zid')));};};zfd.appendChild(db);row.appendChild(zfd);
       // von
       var zfv=document.createElement('div');zfv.className='zf';var zlv=document.createElement('label');zlv.textContent='Von';zfv.appendChild(zlv);
-      var iv=document.createElement('input');iv.type='time';iv.value=z.von||'';iv.setAttribute('data-aid',a.id);iv.setAttribute('data-zid',z.id);if(sapChecked){iv.readOnly=true;iv.style.opacity='0.7';iv.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{iv.oninput=iv.onchange=function(){var v=this.value;if(!v||/^\d{1,2}:\d{2}$/.test(v))updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'von',v);};};
+      var iv=document.createElement('input');iv.type='time';iv.step=900;iv.value=z.von||'';iv.setAttribute('data-aid',a.id);iv.setAttribute('data-zid',z.id);if((sapChecked&&!isNachtrag)||nkLocked){iv.readOnly=true;iv.style.opacity='0.7';iv.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{iv.oninput=iv.onchange=function(){var v=this.value;if(!v||/^\d{1,2}:\d{2}$/.test(v))updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'von',v);};};
 zfv.appendChild(iv);row.appendChild(zfv);
       // bis
       var zfb=document.createElement('div');zfb.className='zf';var zlb2=document.createElement('label');zlb2.textContent='Bis';zfb.appendChild(zlb2);
-      var ib=document.createElement('input');ib.type='time';ib.value=z.bis||'';ib.setAttribute('data-aid',a.id);ib.setAttribute('data-zid',z.id);if(sapChecked){ib.readOnly=true;ib.style.opacity='0.7';ib.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{ib.oninput=ib.onchange=function(){var v=this.value;if(!v||/^\d{1,2}:\d{2}$/.test(v))updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'bis',v);};};
+      var ib=document.createElement('input');ib.type='time';ib.step=900;ib.value=z.bis||'';ib.setAttribute('data-aid',a.id);ib.setAttribute('data-zid',z.id);if((sapChecked&&!isNachtrag)||nkLocked){ib.readOnly=true;ib.style.opacity='0.7';ib.onclick=function(){alert('\u26a0\ufe0f Dieser Auftrag ist als \u201ein SAP eingetragen\u201c markiert.\n\nZum Bearbeiten den Haken in der Auswertung wieder entfernen.');};}else{ib.oninput=ib.onchange=function(){var v=this.value;if(!v||/^\d{1,2}:\d{2}$/.test(v))updZ(parseInt(this.getAttribute('data-aid')),parseInt(this.getAttribute('data-zid')),'bis',v);};};
 zfb.appendChild(ib);row.appendChild(zfb);
       en.appendChild(row);zl.appendChild(en);
     });
@@ -605,11 +609,11 @@ function berechnenAuftraege(){
   Object.values(groups).forEach(function(g){
     wt+=g.total;
     var div=document.createElement('div');div.className='auftrag-result-item';
-    var det=g.eintraege.map(function(e){return (e.datum?'<span>'+dk(e.datum)+'</span> ':'')+'<span>'+e.von+' \u2013 '+e.bis+'</span> = '+minToHM(e.dauer);}).join('<br>');
+    var det=g.eintraege.map(function(e){return (e.datum?'<span>'+dk(e.datum)+'</span> ':'')+'<span>'+e.von+' \u2013 '+e.bis+'</span> = '+minToDez(e.dauer);}).join('<br>');
     var ckKey='check_'+g.auftragsnr+'_'+g.vorgangsnr;
     var ckChecked=localStorage.getItem(ckKey)==='1';
     if(ckChecked)div.style.background='rgba(100,200,80,0.10)';
-    div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="display:flex;margin-bottom:2px;"><span class="res-aufnr-label" style="min-width:120px;">Auftrag</span><span class="res-aufnr-label">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="res-aufnr-val" style="min-width:120px;">'+esc(g.auftragsnr)+'</span><span class="res-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div></div><label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0 0 10px;"><input type="checkbox" class="auswert-check" data-key="'+ckKey+'" '+(ckChecked?'checked':'')+' style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent);"><span style="font-size:0.5rem;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;">Eingetragen</span></label></div><div class="res-total">'+minToHM(g.total)+'</div><div class="res-detail">'+det+'</div>';
+    div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="display:flex;margin-bottom:2px;"><span class="res-aufnr-label" style="min-width:120px;">Auftrag</span><span class="res-aufnr-label">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="res-aufnr-val" style="min-width:120px;">'+esc(g.auftragsnr)+'</span><span class="res-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'\u2013')+'</div></div><label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0 0 10px;"><input type="checkbox" class="auswert-check" data-key="'+ckKey+'" '+(ckChecked?'checked':'')+' style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent);"><span style="font-size:0.5rem;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;">Eingetragen</span></label></div><div class="res-total">'+minToDez(g.total)+'</div><div class="res-detail">'+det+'</div>';
     container.appendChild(div);
     (function(d,key){d.querySelector('.auswert-check').onchange=function(){if(this.checked){localStorage.setItem(key,'1');d.style.background='rgba(100,200,80,0.10)';}else{localStorage.removeItem(key);d.style.background='';}renderAll();
       var cont=document.getElementById('auftragResults');if(cont)try{localStorage.setItem('auswertung_result',cont.innerHTML);}catch(e){}
@@ -623,9 +627,9 @@ function berechnenAuftraege(){
       var ndiv=document.createElement('div');
       ndiv.className='auftrag-result-item';
       if(nkChecked)ndiv.style.background='rgba(100,200,80,0.10)';
-      var detNachtrag=nachtragEintraege.map(function(e){return (e.datum?'<span>'+dk(e.datum)+'</span> ':'')+e.von+' – '+e.bis+' = '+minToHM(e.dauer);}).join('<br>');
+      var detNachtrag=nachtragEintraege.map(function(e){return (e.datum?'<span>'+dk(e.datum)+'</span> ':'')+e.von+' – '+e.bis+' = '+minToDez(e.dauer);}).join('<br>');
       var nachtragTotal=nachtragEintraege.reduce(function(s,e){return s+e.dauer;},0);
-      ndiv.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="res-aufnr-label" style="min-width:120px;">Auftrag</span><span class="res-aufnr-label">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="res-aufnr-val" style="min-width:120px;">'+esc(g.auftragsnr)+'</span><span class="res-aufnr-val">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'–')+'</div><div style="font-size:0.55rem;color:var(--accent4);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Nachtrag</div><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="res-total">'+minToHM(nachtragTotal)+'</div><div class="res-detail">'+detNachtrag+'</div></div><label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0 0 10px;"><input type="checkbox" class="auswert-check" data-key="'+nkKey+'" '+(nkChecked?'checked':'')+' style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent);"><span style="font-size:0.5rem;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;">Eingetragen</span></label></div>';
+      ndiv.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="res-aufnr-label" style="min-width:120px;">Auftrag</span><span class="res-aufnr-label">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="res-aufnr-val" style="min-width:120px;">'+esc(g.auftragsnr)+'</span><span class="res-aufnr-val">'+esc(g.vorgangsnr)+'</span></div><div class="res-desc">'+esc(g.beschreibung||'–')+'</div><div style="font-size:0.55rem;color:var(--accent4);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Nachtrag</div><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="res-total">'+minToDez(nachtragTotal)+'</div><div class="res-detail">'+detNachtrag+'</div></div><label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0 0 10px;"><input type="checkbox" class="auswert-check" data-key="'+nkKey+'" '+(nkChecked?'checked':'')+' style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent);"><span style="font-size:0.5rem;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;">Eingetragen</span></label></div>';
       container.appendChild(ndiv);
       (function(d,key){d.querySelector('.auswert-check').onchange=function(){if(this.checked){localStorage.setItem(key,'1');d.style.background='rgba(100,200,80,0.10)';}else{localStorage.removeItem(key);d.style.background='';}renderAll();var cont=document.getElementById('auftragResults');if(cont)try{localStorage.setItem('auswertung_result',cont.innerHTML);}catch(ex){};};})(ndiv,nkKey);
     }
@@ -638,12 +642,12 @@ function berechnenAuftraege(){
   var kwKeys=Object.keys(kwSet);
   var wb=document.createElement('div');wb.className='week-total-box';
   if(kwKeys.length===1){
-    wb.innerHTML='<div class="week-total-label">Total KW '+kwKeys[0]+'</div><div class="week-total-val">'+minToHM(wt)+'</div>';
+    wb.innerHTML='<div class="week-total-label">Total KW '+kwKeys[0]+'</div><div class="week-total-val">'+minToDez(wt)+'</div>';
   } else if(kwKeys.length>1){
     var kwList=kwKeys.join(', ');
-    wb.innerHTML='<div class="week-total-label">Total alle Eintr\u00e4ge</div><div class="week-total-val">'+minToHM(wt)+'</div><div style="margin-top:8px;padding:8px 10px;background:rgba(240,160,96,0.12);border:1px solid var(--accent3);border-radius:7px;font-size:0.65rem;color:var(--accent3);line-height:1.5;">\u26a0\ufe0f Eintr\u00e4ge aus verschiedenen Kalenderwochen:<br>KW '+kwList+'<br>Bitte pro Woche separat archivieren.</div>';
+    wb.innerHTML='<div class="week-total-label">Total alle Eintr\u00e4ge</div><div class="week-total-val">'+minToDez(wt)+'</div><div style="margin-top:8px;padding:8px 10px;background:rgba(240,160,96,0.12);border:1px solid var(--accent3);border-radius:7px;font-size:0.65rem;color:var(--accent3);line-height:1.5;">\u26a0\ufe0f Eintr\u00e4ge aus verschiedenen Kalenderwochen:<br>KW '+kwList+'<br>Bitte pro Woche separat archivieren.</div>';
   } else {
-    wb.innerHTML='<div class="week-total-label">Total</div><div class="week-total-val">'+minToHM(wt)+'</div>';
+    wb.innerHTML='<div class="week-total-label">Total</div><div class="week-total-val">'+minToDez(wt)+'</div>';
   }
   // Day totals
   var dayNames=['So','Mo','Di','Mi','Do','Fr','Sa'];
@@ -658,7 +662,7 @@ function berechnenAuftraege(){
       var day=dayTotals[d];
       var dt=new Date(d);
       var label=('0'+dt.getDate()).slice(-2)+'. '+['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt.getMonth()];
-      dtHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:var(--muted);">'+day.name+' '+label+'</span><span style="color:var(--text);font-family:\'Fraunces\',serif;">'+minToHM(day.total)+'</span></div>';
+      dtHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:var(--muted);">'+day.name+' '+label+'</span><span style="color:var(--text);font-family:\'Fraunces\',serif;">'+minToDez(day.total)+'</span></div>';
     });
     dtDiv.innerHTML=dtHtml;
     container.appendChild(dtDiv);
@@ -673,8 +677,8 @@ function berechnenAuftraege(){
 function exportText(){
   var groups=buildGroups(),text='ARBEITSZEITAUSWERTUNG\n'+'='.repeat(30)+'\n\n';
   Object.values(groups).forEach(function(g){
-    text+='Auftrag:  '+g.auftragsnr+'\nVorgang:  '+g.vorgangsnr+'\nBeschr.:  '+(g.beschreibung||'\u2013')+'\nGesamt:   '+minToHM(g.total)+'\n';
-    g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
+    text+='Auftrag:  '+g.auftragsnr+'\nVorgang:  '+g.vorgangsnr+'\nBeschr.:  '+(g.beschreibung||'\u2013')+'\nGesamt:   '+minToDez(g.total)+'\n';
+    g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToDez(e.dauer)+'\n';});
     text+='\n';
   });
   // Day totals in export text
@@ -684,14 +688,14 @@ function exportText(){
   var sortedEx=Object.keys(dayTotalsEx).sort();
   if(sortedEx.length){
     text+='Tagestotale\n'+'-'.repeat(20)+'\n';
-    sortedEx.forEach(function(d){var dd=new Date(d);var lbl=dayNamesEx[dd.getDay()]+' '+('0'+dd.getDate()).slice(-2)+'.'+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dd.getMonth()];text+=lbl+': '+minToHM(dayTotalsEx[d].total)+'\n';});
+    sortedEx.forEach(function(d){var dd=new Date(d);var lbl=dayNamesEx[dd.getDay()]+' '+('0'+dd.getDate()).slice(-2)+'.'+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dd.getMonth()];text+=lbl+': '+minToDez(dayTotalsEx[d].total)+'\n';});
     text+='\n';
   }
   // Week total
   var allDatesEx=[];auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)allDatesEx.push(z.datum);});});allDatesEx.sort();
   var kwSetEx={};allDatesEx.forEach(function(d){kwSetEx[getKW(d)]=true;});var kwKeysEx=Object.keys(kwSetEx);
   var wtEx=0;auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.von&&z.bis){var d=toMin(z.bis)-toMin(z.von);if(d>0)wtEx+=d;}});});
-  text+=(kwKeysEx.length===1?'Total KW '+kwKeysEx[0]:'Total')+': '+minToHM(wtEx)+'\n';
+  text+=(kwKeysEx.length===1?'Total KW '+kwKeysEx[0]:'Total')+': '+minToDez(wtEx)+'\n';
   try{navigator.clipboard.writeText(text).then(function(){alert('\u2713 Text kopiert!');});}
   catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('\u2713 Text kopiert!');}
 }
@@ -744,8 +748,8 @@ function exportArchivText(id){
   var entry=archiv.find(function(e){return e.id===id;});if(!entry)return;
   var text='ARCHIV KW '+entry.kw+' / '+entry.jahr+'\n'+'='.repeat(30)+'\n\n';
   entry.gruppen.forEach(function(g){
-    text+='Auftrag:  '+g.auftragsnr+'\nVorgang:  '+g.vorgangsnr+'\nBeschr.:  '+(g.beschreibung||'\u2013')+'\nGesamt:   '+minToHM(g.total)+'\n';
-    g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToHM(e.dauer)+'\n';});
+    text+='Auftrag:  '+g.auftragsnr+'\nVorgang:  '+g.vorgangsnr+'\nBeschr.:  '+(g.beschreibung||'\u2013')+'\nGesamt:   '+minToDez(g.total)+'\n';
+    g.eintraege.forEach(function(e){text+='  '+(e.datum?dk(e.datum)+' ':'')+e.von+' \u2013 '+e.bis+' = '+minToDez(e.dauer)+'\n';});
     text+='\n';
   });
   // Day totals
@@ -755,12 +759,12 @@ function exportArchivText(id){
   var sortedC=Object.keys(dayTotalsC).sort();
   if(sortedC.length){
     text+='Tagestotale\n'+'-'.repeat(20)+'\n';
-    sortedC.forEach(function(d){var dd=new Date(d);var lbl=dayNamesC[dd.getDay()]+' '+('0'+dd.getDate()).slice(-2)+'.'+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dd.getMonth()];text+=lbl+': '+minToHM(dayTotalsC[d].total)+'\n';});
+    sortedC.forEach(function(d){var dd=new Date(d);var lbl=dayNamesC[dd.getDay()]+' '+('0'+dd.getDate()).slice(-2)+'.'+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dd.getMonth()];text+=lbl+': '+minToDez(dayTotalsC[d].total)+'\n';});
     text+='\n';
   }
   // Week total
   var kt2=entry.gruppen.reduce(function(s,g){return s+g.total;},0);
-  text+='Total KW '+entry.kw+': '+minToHM(kt2)+'\n';
+  text+='Total KW '+entry.kw+': '+minToDez(kt2)+'\n';
   try{navigator.clipboard.writeText(text).then(function(){alert('\u2713 Text kopiert!');});}
   catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('\u2713 Text kopiert!');}
 }
@@ -1105,7 +1109,7 @@ function renderArchiv(){
     var blk=document.createElement('div');blk.className='kw-block';
     var hdr=document.createElement('div');hdr.className='kw-header';hdr.setAttribute('data-k',k);hdr.onclick=function(){toggleUe(this.getAttribute('data-k'));};
     var vnames=Object.values(auf.vorgaenge).map(function(v){return esc(v.beschreibung||v.vorgangsnr);}).join(' / ');
-    hdr.innerHTML='<div><div class="kw-title">'+esc(auf.auftragsnr)+'</div><div class="kw-meta">'+minToHM(auf.total)+' gesamt</div><div class="kw-meta" style="color:var(--muted);margin-top:1px;font-size:0.6rem;color:var(--accent4);">'+vnames+'</div></div><span class="kw-arrow" id="uea-'+k+'">\u25bc</span>';
+    hdr.innerHTML='<div><div class="kw-title">'+esc(auf.auftragsnr)+'</div><div class="kw-meta">'+minToDez(auf.total)+' gesamt</div><div class="kw-meta" style="color:var(--muted);margin-top:1px;font-size:0.6rem;color:var(--accent4);">'+vnames+'</div></div><span class="kw-arrow" id="uea-'+k+'">\u25bc</span>';
     blk.appendChild(hdr);
     var body=document.createElement('div');body.className='kw-body';body.id='ueb-'+k;
     Object.values(auf.vorgaenge).forEach(function(v){
@@ -1113,7 +1117,7 @@ function renderArchiv(){
       vd.style.cssText='display:flex;align-items:flex-start;gap:8px;';
       var vtxt=document.createElement('div');vtxt.style.flex='1';
       var kwsLabel=v.kws&&v.kws.length?'<span style="font-size:0.62rem;color:var(--muted);margin-left:6px;">(KW '+v.kws.join(', ')+')</span>':'';
-      vtxt.innerHTML='<div class="kw-aufnr">Vorgang</div><div class="kw-aufnr-val">'+esc(v.vorgangsnr)+'</div><div class="kw-desc">'+esc(v.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(v.total)+kwsLabel+'</div>';
+      vtxt.innerHTML='<div class="kw-aufnr">Vorgang</div><div class="kw-aufnr-val">'+esc(v.vorgangsnr)+'</div><div class="kw-desc">'+esc(v.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToDez(v.total)+kwsLabel+'</div>';
       vd.appendChild(vtxt);
       var vdel=document.createElement('button');vdel.className='del-btn';vdel.textContent='\u2715';
       vdel.style.cssText='margin-top:4px;flex-shrink:0;';
@@ -1138,13 +1142,13 @@ function renderArchiv(){
       var kt=e.gruppen.reduce(function(s,g){return s+g.total;},0);
       var kb=document.createElement('div');kb.className='kw-block';
       var kh=document.createElement('div');kh.className='kw-header';kh.setAttribute('data-kwid',e.id);kh.onclick=function(){toggleKW(parseInt(this.getAttribute('data-kwid')));};
-      kh.innerHTML='<div><div class="kw-title">KW '+e.kw+' <span style="color:var(--accent4);font-size:0.75rem;">'+minToHM(kt)+'</span></div><div class="kw-meta">'+kl+'</div></div><span class="kw-arrow" id="kwarrow-'+e.id+'">\u25bc</span>';
+      kh.innerHTML='<div><div class="kw-title">KW '+e.kw+' <span style="color:var(--accent4);font-size:0.75rem;">'+minToDez(kt)+'</span></div><div class="kw-meta">'+kl+'</div></div><span class="kw-arrow" id="kwarrow-'+e.id+'">\u25bc</span>';
       kb.appendChild(kh);
       var kbody=document.createElement('div');kbody.className='kw-body';kbody.id='kwbody-'+e.id;
       e.gruppen.forEach(function(g){
         var gd=document.createElement('div');gd.className='kw-auftrag';
-        var det=g.eintraege.map(function(en){return (en.datum?'<span>'+dk(en.datum)+'</span> ':'')+'<span>'+en.von+' \u2013 '+en.bis+'</span> = '+minToHM(en.dauer);}).join('<br>');
-        gd.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="kw-aufnr" style="min-width:110px;">Auftrag</span><span class="kw-aufnr">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="kw-aufnr-val" style="min-width:110px;">'+esc(g.auftragsnr)+'</span><span class="kw-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="kw-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToHM(g.total)+'</div><div class="kw-detail">'+det+'</div>';
+        var det=g.eintraege.map(function(en){return (en.datum?'<span>'+dk(en.datum)+'</span> ':'')+'<span>'+en.von+' \u2013 '+en.bis+'</span> = '+minToDez(en.dauer);}).join('<br>');
+        gd.innerHTML='<div style="display:flex;margin-bottom:2px;"><span class="kw-aufnr" style="min-width:110px;">Auftrag</span><span class="kw-aufnr">Vorgang</span></div><div style="display:flex;margin-bottom:4px;"><span class="kw-aufnr-val" style="min-width:110px;">'+esc(g.auftragsnr)+'</span><span class="kw-aufnr-val" style="color:var(--text)">'+esc(g.vorgangsnr)+'</span></div><div class="kw-desc">'+esc(g.beschreibung||'\u2013')+'</div><div class="kw-total">'+minToDez(g.total)+'</div><div class="kw-detail">'+det+'</div>';
         kbody.appendChild(gd);
       });
 
@@ -1161,13 +1165,13 @@ function renderArchiv(){
           var day2=dayTotals2[d2];
           var dt3=new Date(d2);
           var lbl=('0'+dt3.getDate()).slice(-2)+'. '+['Jan','Feb','M\u00e4r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt3.getMonth()];
-          dtHtml2+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:var(--muted);">'+day2.name+' '+lbl+'</span><span style="color:var(--text);font-family:\'Fraunces\',serif;">'+minToHM(day2.total)+'</span></div>';
+          dtHtml2+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:var(--muted);">'+day2.name+' '+lbl+'</span><span style="color:var(--text);font-family:\'Fraunces\',serif;">'+minToDez(day2.total)+'</span></div>';
         });
         dtDiv2.innerHTML=dtHtml2;
         kbody.appendChild(dtDiv2);
       }
       var ktb=document.createElement('div');ktb.className='kw-total-box';
-      ktb.innerHTML='<div class="kw-total-box-label">Total KW '+e.kw+'</div><div class="kw-total-box-val">'+minToHM(kt)+'</div>';
+      ktb.innerHTML='<div class="kw-total-box-label">Total KW '+e.kw+'</div><div class="kw-total-box-val">'+minToDez(kt)+'</div>';
       kbody.appendChild(ktb);
       var ac=document.createElement('div');ac.className='kw-actions';
       var editb=document.createElement('button');editb.className='kw-btn';editb.textContent='\u270f\ufe0f Bearbeiten';editb.setAttribute('data-eid',e.id);editb.onclick=function(){openArchivEdit(parseInt(this.getAttribute('data-eid')));};
