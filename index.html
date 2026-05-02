@@ -720,6 +720,23 @@ function getKW(iso){var d=new Date(iso);d.setHours(0,0,0,0);d.setDate(d.getDate(
 
 function wocheArchivieren(){
   if(!auftraege.length){alert('Keine Eintr\u00e4ge zum Erfassen.');return;}
+  // Check if all auftraege are marked as "Eingetragen" in SAP
+  var groups=buildGroups();
+  var notChecked=[];
+  Object.values(groups).forEach(function(g){
+    var ckKey='check_'+g.auftragsnr+'_'+g.vorgangsnr;
+    var hasNachtrag=g.eintraege.some(function(e){return e.nachtrag;});
+    var nkKey='ntr_'+g.auftragsnr+'_'+g.vorgangsnr;
+    var mainOk=localStorage.getItem(ckKey)==='1';
+    var nachtragOk=!hasNachtrag||localStorage.getItem(nkKey)==='1';
+    if(!mainOk||!nachtragOk){
+      notChecked.push((g.beschreibung||g.auftragsnr)+' / '+g.vorgangsnr);
+    }
+  });
+  if(notChecked.length>0){
+    var msg='\u26a0\ufe0f Nicht alle Auftr\u00e4ge sind als \u201ein SAP eingetragen\u201c markiert:\n\n'+notChecked.join('\n')+'\n\nTrotzdem abschliessen?';
+    if(!confirm(msg))return;
+  }
   var groups=buildGroups(),dates=[];
   auftraege.forEach(function(a){a.zeiten.forEach(function(z){if(z.datum)dates.push(z.datum);});});
   dates.sort();
